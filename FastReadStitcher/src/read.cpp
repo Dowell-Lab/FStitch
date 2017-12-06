@@ -110,48 +110,87 @@ contigOut makeContig(string FILE, int start, int stop){
 	C 		= new contig;
 	contig * root 	= C;
 	float coverage 	= 0;
+        int strand=CONTIG_STRAND_POS;
 
 	while (FH.tellg()<stop){
 		getline(FH,line);
 		lineArray 	= splitter(line, "\t");
 		if (lineArray.size()!=4){
-			cout<<endl;
-			cout<<"couldn't parse line: "+line+"\n";
-			CO.EXIT=true;
-			return CO;
+                    cout<<endl;
+                    cout<<"couldn't parse line: "+line+"\n";
+                    CO.EXIT=true;
+                    return CO;
 		}else{
+                    //cout<<line<<endl;
 
-			chrom 	= lineArray[0];
-			if (not isNum(lineArray[1]) or not  isNum(lineArray[2]) or not isNum(lineArray[3]) ){
-				cout<<endl;
-				cout<<"Line: "<<line<<endl;
-				cout<<"could not convert coordinates or coverage value to number"<<endl;
-				CO.EXIT=true;
-				return CO;
-			}
-			sp 		= stoi(lineArray[2]);
-			st 		= stoi(lineArray[1]);
-			cov 	= stof(lineArray[3]);
-			if (begin){
-				begin 		= 0;
-				prevStop	= sp;
-				l 			= sp-prevStop;
-				prevStart 	= 0;
-			}else if(not begin and (st-p)>2 ){
-				r 			= st - p;
-				C->setStats(prevStart-l,p+r, l, r, p-prevStart, coverage, chrom);
-				C->next 	= new contig;
-				C 			= C->next;
-				prevStart 	= st;
-				l 			= prevStart - p;
+                    chrom 	= lineArray[0];
 
-				coverage=0;			
-			}
+                    /* NOTE: If you comment out the following block (until the CO.EXIT=true;return CO; nugget)
+                    * then FStitch will start to behave like the newer version (ie. it will learn to constantly
+                    * switch between states).
+                    */
+                    //This should be the start position.
+                    if(!isNum(lineArray[1]))
+                    {
+                        cout<<"Element 1 could not be converted"<<endl;
+                    }
 
-			p 		= sp;
-			coverage+=cov;
-		}
-		start++;
+                    //This should be the stop position
+                    if(!isNum(lineArray[2]))
+                    {
+                        cout<<"Element 2 could not be converted"<<endl;
+                    }
+
+                    //This value should represent the frequency of found reads. 
+                    if(!isNum(lineArray[3]))
+                    {
+                        if(stoi(lineArray[3])<0)
+                        {
+                            //TODO: Consider how to implement better logic for this function.
+                            //Perhaps a strand could be specified, then any data not meeting that spec
+                            //could then be discarded?
+                            strand=CONTIG_STRAND_NEG;
+                        }
+                        cout<<"Element 3 could not be converted"<<endl;
+                    }
+                    
+                    else
+                    {
+                        strand=CONTIG_STRAND_POS;
+                    }
+
+                    if (not isNum(lineArray[1]) or not  isNum(lineArray[2]) or not isNum(lineArray[3]) ){
+                        cout<<endl;
+                        cout<<"Line: "<<line<<endl;
+                        cout<<"could not convert coordinates or coverage value to number"<<endl;
+                        CO.EXIT=true;
+                        return CO;
+                    }
+
+                    sp 		= stoi(lineArray[2]); //Stop
+                    st 		= stoi(lineArray[1]); //Start
+                    cov 	= stof(lineArray[3]); //Coverage? Waaait.
+                    if (begin){
+                        begin 		= 0;
+                        prevStop	= sp;
+                        l 			= sp-prevStop;
+                        prevStart 	= 0;
+                    }else if(not begin and (st-p)>2 ){
+                        r 			= st - p;
+                        C->setStats(prevStart-l,p+r, l, r, p-prevStart, coverage, chrom);
+                        C->next 	= new contig;
+                        C 			= C->next;
+                        prevStart 	= st;
+                        l 			= prevStart - p;
+
+                        coverage=0;			
+                    }
+
+                    p 		= sp;
+                    coverage+=cov;
+            }
+            
+            start++;
 	}
 	C->next 	= NULL;
 	
@@ -159,6 +198,109 @@ contigOut makeContig(string FILE, int start, int stop){
 	CO.EXIT 	= false;
 	CO.result 	= root;
 	return CO;
+}
+
+contigOut makeContigStrand(string FILE, int start, int stop, int strand){
+        contigOut CO;
+        ifstream FH(FILE);
+        FH.seekg(start);
+        string line, chrom;
+        vector<string> lineArray;
+        vector<contig> contigs;
+        int st, sp;
+        float cov;
+        int prevStart= 0;
+        int prevStop = 0;
+        int p = 0;
+        double l = 0;
+        double r = 0;
+        bool begin=1;
+        contig * C;
+        C               = new contig;
+        contig * root   = C;
+        float coverage  = 0;
+        //int strand=CONTIG_STRAND_POS;
+
+        while (FH.tellg()<stop){
+                getline(FH,line);
+                lineArray       = splitter(line, "\t");
+                if (lineArray.size()!=4){
+                    cout<<endl;
+                    cout<<"couldn't parse line: "+line+"\n";
+                    CO.EXIT=true;
+                    return CO;
+                }else{
+                    //cout<<line<<endl;
+
+                    chrom       = lineArray[0];
+
+                    /* NOTE: If you comment out the following block (until the CO.EXIT=true;return CO; nugget)
+                    * then FStitch will start to behave like the newer version (ie. it will learn to constantly
+                    * switch between states).
+                    */
+                    //This should be the start position.
+
+                    if(!isNum(lineArray[1]))
+                    {
+                        cout<<"Element 1 could not be converted"<<endl;
+                    }
+
+                    //This should be the stop position
+                    if(!isNum(lineArray[2]))
+                    {
+                        cout<<"Element 2 could not be converted"<<endl;
+                    }
+                    //cout<<"Value "<<lineArray[3]<<" isNum "<<isNum(lineArray[3], strand)<<endl;
+                    //Only add the read if it's going to be valid: 
+                    if(isNum(lineArray[3], strand))
+                    {
+                        //cout<<"Added values for line "<<line<<endl;
+                        //strand=CONTIG_STRAND_POS;
+                        if (not isNum(lineArray[1]) or not  isNum(lineArray[2]) or not isNum(lineArray[3], strand) ){
+                            cout<<endl;
+                            cout<<"Line: "<<line<<endl;
+                            cout<<"could not convert coordinates or coverage value to number"<<endl;
+                            CO.EXIT=true;
+                            return CO;
+                        }
+
+                        sp          = stoi(lineArray[2]); //Stop
+                        st          = stoi(lineArray[1]); //Start
+                        cov         = stof(lineArray[3]); //Coverage? Waaait.
+                        if(strand)
+                        {
+                            //If we're negative, then invert the value so fstitch doesn't break.
+                            cov*=-1.;
+                        }
+                        if (begin){
+                            begin           = 0;
+                            prevStop        = sp;
+                            l                       = sp-prevStop;
+                            prevStart       = 0;
+                        }else if(not begin and (st-p)>2 ){
+                            r                       = st - p;
+                            C->setStats(prevStart-l,p+r, l, r, p-prevStart, coverage, chrom);
+                            C->next         = new contig;
+                            C                       = C->next;
+                            prevStart       = st;
+                            l                       = prevStart - p;
+
+                            coverage=0;                     
+                        }
+
+                        p           = sp;
+                        coverage+=cov;
+                    }
+            }
+            
+            start++;
+        }
+        C->next         = NULL;
+        
+        FH.close();
+        CO.EXIT         = false;
+        CO.result       = root;
+        return CO;
 }
 
 interval::interval(int st, int sp , string INFO){
@@ -224,6 +366,146 @@ readTrainingFileReturn readTrainingFile(string FILE){
 	return RETURN;
 
 }
+
+int lineCompare(string line1, string line2)
+{
+    char *line1c, *line2c;
+    char *ptr;
+    int l1col, l2col;
+    
+    line1c=(char*) line1.c_str();
+    line2c=(char*) line2.c_str();
+
+    //Awful kluge to find the second column in each line:
+    for(ptr=line1c;(*ptr)!='\t';ptr++);
+    ptr++;
+    l1col=atoi(ptr);
+
+    for(ptr=line2c;(*ptr)!='\t';ptr++);
+    ptr++;
+    l2col=atoi(ptr);
+
+    return l1col-l2col;
+}
+
+readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
+        readTrainingFileReturn RETURN;
+        map<string, interval *>         R;
+        map<string, interval *>         roots;
+
+        vector<int> start_stop(3);
+        //ifstream FH(FILE);
+        ifstream onFH(onfile);
+        ifstream offFH(offfile);
+        string line;
+        vector<string> lineArray;
+        vector<string> lines;
+        bool ongood;
+        bool offgood;
+        string online;
+        string offline;
+        int cmpV;
+        int i;
+
+        // Fill up the vector of lines while taking advantage of the fact that the input
+        // files *should* be sorted.
+        if(onFH && offFH)
+        {
+            ongood=getline(onFH, online).good();
+            offgood=getline(offFH, offline).good();
+
+            while(ongood&&offgood)
+            {
+                cmpV=lineCompare(online, offline);
+                if(cmpV>0) //Ie. the starting position of line1>line2.
+                {
+                    lines.push_back(offline);
+                    offgood=getline(offFH, offline).good();
+                }
+
+                //Ie. the starting position of line1=line2.
+                else if(cmpV==0)
+                {
+                    lines.push_back(offline);
+                    lines.push_back(online);
+                    offgood=getline(offFH, offline).good();
+                    ongood=getline(onFH, online).good();
+                }
+
+                //Ie. the starting position of line1<line2.
+                else
+                {
+                    lines.push_back(online);
+                    ongood=getline(onFH, online).good();
+                }
+            }
+
+            //Attempt to push the rest of the data into the vector:
+            while(ongood)
+            {
+                lines.push_back(online);
+                ongood=getline(onFH, online).good();
+            }
+
+            while(offgood)
+            {
+                lines.push_back(offline);
+                offgood=getline(offFH, offline).good();
+            }
+
+            //Now that we have a proper set of lines:
+            for(i=0;i<lines.size();i++)
+            {
+                line=lines[i];
+
+                //Code shamelessly copy-pasted from above:
+
+                if (!line.empty() && line[line.size() - 1] == '\r'){
+                        line.erase(line.size() - 1);
+                }
+                lineArray                       = splitter(line, "\t");
+                if (lineArray.size()!=4){
+                        cout<<"Line: "<<line<<", in training file is not formatted properly, tab delimited"<<endl;
+                        RETURN.EXIT     = true;
+                        return RETURN;
+                }
+                if (not (lineArray[3]=="0" or lineArray[3]=="1")){
+                        printf("Line: %s, must contain either 0 or 1 as training input\n",line.c_str() );
+                        RETURN.EXIT     = true;
+                        return RETURN;
+                }
+                if (not isNum(lineArray[1]) or not isNum(lineArray[2])){
+                        cout<<"Line: "<<line<<", coordinates must be numbers"<<endl;
+                        RETURN.EXIT     = true;
+                        return RETURN;
+                }
+                if (R.find(lineArray[0])==R.end()){
+                        R[lineArray[0]]                 = new interval(stoi(lineArray[1] ), stoi(lineArray[2]), lineArray[3]);
+                        roots[lineArray[0]]     = R[lineArray[0]];
+                }else{
+                        R[lineArray[0]]->next   = new interval(stoi(lineArray[1] ), stoi(lineArray[2]), lineArray[3]);
+                        R[lineArray[0]]                 = R[lineArray[0]]->next;
+                }
+            }
+        }
+
+        else
+        {
+            cerr<<"Couldn't open either "<<onfile<<" or "<<offfile<<"."<<endl;
+        }
+
+        typedef map<string, interval *>::iterator r_it;
+        for (r_it I = R.begin(); I!=R.end(); I++){
+                R[I->first]     = roots[I->first];
+        }
+
+        onFH.close();
+        offFH.close();
+        RETURN.EXIT     = false;
+        RETURN.result   = R;
+        return RETURN;
+}
+
 map<string,contig *> readBedGraphFile(string FILE, map<string, interval *> T, bool verbose){
 	file_stats fs 					= getFHstats(FILE);
 	vector<int> start_stop 			= fs.start_stop;
@@ -253,6 +535,37 @@ map<string,contig *> readBedGraphFile(string FILE, map<string, interval *> T, bo
 	}
 	return D;
 }
+
+map<string,contig *> readBedGraphFileStrand(string FILE, map<string, interval *> T, bool verbose, int strand){
+        file_stats fs                                   = getFHstats(FILE);
+        vector<int> start_stop                  = fs.start_stop;
+
+        map<int,string> relate                  = fs.relate;
+        map<string,contig *>    D;
+        vector<contig *> M(start_stop.size());
+        int nthreads                                    = omp_get_max_threads();
+        bool abort = false;
+        #pragma omp parallel for
+        for(int n=1; n<start_stop.size(); ++n)
+        {
+                #pragma omp flush (abort)
+                if (T.find(relate[n-1])!=T.end()){
+                        contigOut CO    = makeContigStrand(FILE, start_stop[n-1],start_stop[n], strand);
+                        if (CO.EXIT){
+                                D.clear();
+                                abort = true;
+                        }
+                        M[n-1]                  = CO.result;
+                        D[relate[n-1]]  = M[n-1];
+                }
+                
+        }
+        if (abort){
+                D.clear();
+        }
+        return D;
+}
+
 map<string,contig *> readBedGraphFileAll(string FILE,int np){
 	omp_set_dynamic(0);     // Explicitly disable dynamic teams
 	omp_set_num_threads(np); // Use 4 threads for all consecutive parallel regions

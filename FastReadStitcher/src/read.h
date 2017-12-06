@@ -3,7 +3,11 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdlib>
 using namespace std;
+
+#define CONTIG_STRAND_POS 1
+#define CONTIG_STRAND_NEG 2
 class contig{
 public:
 	int start, stop;
@@ -15,6 +19,7 @@ public:
 	void setStats(int , int , double , double , double, float , string);
 	void display();
 	vector<double> getVect(bool);
+        int strand;
 };
 class interval{
 public:
@@ -46,8 +51,12 @@ public:
 
 
 readTrainingFileReturn readTrainingFile(string);
+int lineCompare(string line1, string line2);
+readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile);
 map<string,contig *> readBedGraphFile(string, map<string, interval *>, bool);
+map<string,contig *> readBedGraphFileStrand(string, map<string, interval *>, bool, int);
 map<string, map<string, interval *>> readRefSeq(string);
 RTOF readTrainingOutFile(string);
 map<string,contig *> readBedGraphFileAll(string,int);
+
 #endif
