@@ -1,0 +1,66 @@
+\documentclass[12pt,letterpaper]{article}
+
+\begin{document}
+
+\title{Quick Start Guide for FStitch}
+\author{Michael Gohde}
+\date{December 6, 2017}
+\maketitle
+
+\abstract{FStitch is a tool that learns and generates annotations for regions of transcription on GRO or ChIP-seq data. 
+          This document exists to provide a quick reference on how to invoke and properly use the new interface for FStitch.}
+
+\section{Invoking FStitch}
+FStitch is designed to be run from a command line. All modes implemented by FStitch accept arguments in the following way:
+
+\begin{verbatim}
+FStitch <command> [arguments]
+\end{verbatim}
+
+There are currently two commands usable by FStitch:
+
+\begin{tabular}{| l | p{8cm} |}
+ \hline
+ \textbf{Command} & \textbf{Description}\\
+ \hline
+ train & This command instructs FStitch to attempt to generate a set of trained weights based on a human-created file marking regions of transcription given a bedgraph.\\
+ \hline
+ segment & This command instructs FStitch to use a set of trained weights to generate predictions on regions of transcription given a bedgraph.\\
+ \hline
+\end{tabular}
+
+\section{Training}
+The first step in using FStitch is to have it analyze a set of manually labeled regions of interest within a genome to determine a set of training weights.
+This allows FStitch to later predict regions of transcription within a genome given a bedgraph file. In order to do this, it is necessary to pass, at minimum,
+the following list of parameters to FStitch:
+
+\begin{enumerate}
+ \item \textit{-a annotations.bed} FStitch needs a set of reference annotations so that it can learn how to mark regions given an input bedgraph.
+ \item \textit{-r input.BedGraph} In order to determine what each label means in context, FStitch needs the input data from which reads were labeled.
+ \item \textit{-o outputfilename} Once FStitch generates a set of weights, it needs to store them in an output file. This parameter allows you to specify that file.
+\end{enumerate}
+
+These parameters can be used to form the following command line:
+\begin{verbatim}
+FStitch train -a annotations.bed -r input.BedGraph -o outputfilename.out
+\end{verbatim}
+
+Please note that the above parameters may be specified in any order as long as they follow the `train' command.
+There are a number of additional parameters and modes that can be specified. To see these, either run FStitch without any arguments or consult the full users guide.
+
+\section{Segmentation}
+The second step in using FStitch is to have it predict regions of transcription given a weights file and a bedgraph. This requires the following set of parameters:
+
+\begin{enumerate}
+ \item \textit{-r input.BedGraph} It is necessary to have an input dataset to annotate.
+ \item \textit{-w weights.out} This is the weights file generated in the previous step.
+ \item \textit{-o output.bed} Once FStitch generates a set of annotations, it needs to store them in an output file readable by various genome viewers. This parameter allows you to specify that file.
+\end{enumerate}
+
+These parameters can be used to form the following command line:
+\begin{verbatim}
+FStitch segment -r input.BedGraph -w weights.out -o output.bed
+\end{verbatim}
+
+Please note that the above parameters may be specified in any order as long as they follow the `segment' command.
+\end{document}

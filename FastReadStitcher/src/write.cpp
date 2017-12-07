@@ -13,7 +13,7 @@ static char *getDtTm (char *buff) {
     strftime (buff, DTTMSZ, DTTMFMT, localtime (&t));
     return buff;
 }
-void writeTrainingFile(string OUT,BW_OUT BWO, double alpha, double cm, double ct, bool ChIP){
+void writeTrainingFile(string OUT,BW_OUT BWO, double alpha, double cm, double ct, bool ChIP, string commandline){
 	ofstream FHW;
 	FHW.open(OUT);
 	if (FHW){	
@@ -21,6 +21,7 @@ void writeTrainingFile(string OUT,BW_OUT BWO, double alpha, double cm, double ct
 		FHW<<"#####################################################"<<endl;
 		FHW<<"#                  Fast Read Stitcher"<<endl;
 		FHW<<"#Parameter Estimation Output"<<endl;
+                FHW<<"#Command Line                    :"<<commandline<<endl;
 		FHW<<"#Date/Time                       :"<<getDtTm(buff)<<endl;
 		FHW<<"#Learning Rate                   :"<<to_string(alpha)<<endl;
 		FHW<<"#Max Iterations                  :"<<to_string(cm)<<endl;
@@ -98,7 +99,7 @@ map<string,map<string,T>> makeIntervalTree(map<string, map<string, interval *>> 
 	return DT;
 }
 
-void writeViterbiPaths(string OUT, map<string, state*> results, string refFile, string strand){
+void writeViterbiPaths(string OUT, map<string, state*> results, string refFile, string strand, string commandLine){
 	map<string, map<string, interval *>> R;
 	map<string,map<string,T>> 	DT;
 	if (not refFile.empty() and strand != "."){

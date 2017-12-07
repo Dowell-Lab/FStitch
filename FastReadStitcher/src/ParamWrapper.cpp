@@ -97,6 +97,14 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     char *prevCmd;
     map<string, string>::iterator it;
     
+    this->commandLine="";
+    
+    for(i=0;i<argc;i++)
+    {
+        commandLine+=argv[i];
+        commandLine+=" ";
+    }
+    
     // Set default parameters:
     this->strand=STRAND_UNSPECIFIED;
     //this->strand=STRAND_BOTH;

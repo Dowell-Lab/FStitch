@@ -48,6 +48,10 @@ public:
     bool specialFileSplit;
     string secondSpecialFileName;
     
+    //This string represents the command line passed to the program. It will be used
+    //when writing output files so that results are easier to reproduce.
+    string commandLine;
+    
     int strand;
     int report;
     

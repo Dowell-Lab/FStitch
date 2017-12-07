@@ -5,7 +5,6 @@
 
 using namespace std;
 
-int run_main_segment(paramsSegment);
 int run_main_segment_pwrapper(ParamWrapper *p);
 
 #endif
