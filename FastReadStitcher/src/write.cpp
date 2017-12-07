@@ -168,8 +168,8 @@ void writeViterbiPaths(string OUT, map<string, state*> results, string refFile, 
 		}
 	}
 	
-
-
+	// Now that we're done with writing the output file, attempt to set an attribute:
+	setxattr(out.c_str(), "user.commandline", commandLine.c_str(), strlen(commandLine.c_str()), XATTR_CREATE);
 }
 
 

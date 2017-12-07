@@ -137,7 +137,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         cout<<"Writing to IGV                      : ";
         cout<<flush;
     }
-    writeViterbiPaths(outFile, results,refFile, strand, commandLine);
+    writeViterbiPaths(outFile, results, refFile, strand, commandLine);
     if (verbose){
         cout<<"done"<<endl;
     }
