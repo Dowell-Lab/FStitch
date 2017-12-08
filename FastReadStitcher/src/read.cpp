@@ -84,12 +84,12 @@ vector<double> contig::getVect(bool ChIP){
 	}
 	return x;
 }
+
 class contigOut{
 public:
 	bool EXIT;
 	contig * result;
 };
-
 
 contigOut makeContig(string FILE, int start, int stop){
 	contigOut CO;
@@ -655,8 +655,10 @@ RTOF readTrainingOutFile(string FILE){
 	vector<double> W;
 	vector<vector<double>> A;
 	vector<string> lineArray;
+        string commandLine="not defined";
 	bool begin 	= 1;
 	bool ChIP 	= 0;
+        RTOF retRTOF;
 	if (FH){
 		while (getline(FH,line)){
 			if (begin and ("#" != line.substr(0,1) ) ){
@@ -670,6 +672,14 @@ RTOF readTrainingOutFile(string FILE){
 				lineArray 		= splitter(line, ":");
 				ChIP 			= (lineArray[1]=="1");
 			}
+			
+                        // Read the training command line and put it in the output struct.
+			else if(line.substr(0,8)=="#Command")
+                        {
+                            lineArray=splitter(line, ":");
+                            commandLine=lineArray[1];
+                        }
+                        
 			if ("#" != line.substr(0,1)){
 				lineArray 		= splitter(line, ":");
 				if (lineArray[0].substr(0,1)=="L"){
@@ -696,7 +706,10 @@ RTOF readTrainingOutFile(string FILE){
 		cout<<"\""<<FILE<<"\""<<" doesn't exist, exiting..."<<endl;
 	}
 	FH.close();
-	return RTOF(W,A, ChIP);
+        
+        retRTOF=RTOF(W, A, ChIP);
+        retRTOF.commandLine=commandLine;
+	return retRTOF;
 }
 
 

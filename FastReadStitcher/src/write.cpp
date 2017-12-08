@@ -99,7 +99,7 @@ map<string,map<string,T>> makeIntervalTree(map<string, map<string, interval *>> 
 	return DT;
 }
 
-void writeViterbiPaths(string OUT, map<string, state*> results, string refFile, string strand, string commandLine){
+void writeViterbiPaths(string OUT, map<string, state*> results, string refFile, string strand, string trainCommandLine, string commandLine){
 	map<string, map<string, interval *>> R;
 	map<string,map<string,T>> 	DT;
 	if (not refFile.empty() and strand != "."){
@@ -117,7 +117,7 @@ void writeViterbiPaths(string OUT, map<string, state*> results, string refFile, 
 	string score, RGB;	
 	//track name=Strand_-description="FStitch" visibility=2 useScore=2 cgGrades=50 cgColour1=white cgColour2=yellow cgColour3=red height=30
 	//chr1    10155   10155   ON=0.000000     100     -       10155   10155   255,0,0 N_A...inf
-	FHW<<"track name=FStitch_Annotations " <<getDtTm(buff) << "visibility=2 useScore=2 cgGrades=50 cgColour1=white cgColour2=yellow cgColour3=red height=30\n";	
+	FHW<<"track name=FStitch_Annotations " <<getDtTm(buff) << "visibility=2 useScore=2 cgGrades=50 cgColour1=white cgColour2=yellow cgColour3=red height=30 description=\"traincommandline='"<<trainCommandLine<<"' segmentcommandline='"<<commandLine<<"'\""<<"\n";	
 	typedef map<string,state *>::iterator c_it;
 	for (c_it chrom = results.begin(); chrom!=results.end(); chrom++){
 		state * C 	= chrom->second;
@@ -167,9 +167,6 @@ void writeViterbiPaths(string OUT, map<string, state*> results, string refFile, 
 
 		}
 	}
-	
-	// Now that we're done with writing the output file, attempt to set an attribute:
-	setxattr(out.c_str(), "user.commandline", commandLine.c_str(), strlen(commandLine.c_str()), XATTR_CREATE);
 }
 
 

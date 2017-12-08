@@ -38,7 +38,7 @@ public:
 	bool EXIT;
 	RTOF(vector<double>,vector<vector<double>>, bool);
 	RTOF();
-
+        string commandLine;
 };
 
 class readTrainingFileReturn{
