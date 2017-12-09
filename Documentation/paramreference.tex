@@ -1,0 +1,141 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{multirow}
+
+\begin{document}
+
+\title{Parameter Reference for FStitch}
+\author{Michael Gohde}
+\date{December 6, 2017}
+\maketitle
+
+\abstract{FStitch is a tool that learns and generates annotations for regions of transcription on GRO or ChIP-seq data. 
+          This document exists to provide a quick reference on how to invoke and properly use the new interface for FStitch.}
+
+\section{Training Parameters}
+
+In order to train a new model, FStitch needs, at minimum, the following information:
+\begin{enumerate}
+ \item \textit{A training input file.} FStitch needs to learn how to segment an input dataset by analyzing existing segments and regions of interest.
+ \item \textit{A BedGraph file.} FStitch needs an input dataset to be able to make inferences about what each labeled region represents.
+ \item \textit{An output file.} Once a model is generated, it needs to be stored so that FStitch can be applied to segment input data.
+\end{enumerate}
+
+Below is a table of all parameters corresponding to the above list of required information. 
+
+\begin{tabular}{| l | p{8cm} |}
+ \hline
+ \textbf{Parameter} & \textbf{Description}\\
+ \hline
+ -r \textit{read bedgraph} & This parameter allows the user to specify a bedgraph file for FStitch to use as its input dataset.\\
+ \hline
+ -o \textit{output file} & This parameter allows the user to specify a training output file.\\
+ \hline
+ -a \textit{Annotation file name} & This parameter allows the user to specify a training input file.\\
+ \hline
+\end{tabular}
+
+There are a number of additional parameters that present options relating to how the input data is to be specified and processed:
+
+\begin{tabular}{| p{6cm} | p{8cm} |}
+ \hline
+ \textbf{Parameter} & \textbf{Description}\\
+ \hline
+ \multirow{2}{8cm}{--posfile \textit{positive strand data} \\--negfile \textit{negative strand data} } & These options can be used in place of the -r parameter to allow the user to split the input dataset into positive and negative strand data.\\
+ \hline
+ \multirow{2}{8cm}{--onfile \textit{on training examples}\\--offfile \textit{off training examples}} & These options can be used in place of the -a parameter to allow the user to split the input training file into on and off regions.\\
+ \hline
+ -chip & This parameter allows the user to use ChIP-seq (Chromatin ImmunoPrecipitation sequencing) input data instead of the default GRO-seq (Genomic Run-On sequencing).\\
+ \hline
+\end{tabular}
+
+The training process itself can be altered through the use of input parameters. Below is a table of such parameters and their default values.
+
+\begin{tabular}{| l | p{2cm} | p{6cm} |}
+ \hline
+ \textbf{Parameter} & \textbf{Default value} & \textbf{Description} \\
+ \hline
+ -cm \textit{value} & 100 & Maximum learning iterations\\
+ \hline
+ -ct \textit{value} & 0.001 & Convergence threshold\\
+ \hline
+ -lr \textit{value} & 0.4 & Learning rate\\
+ \hline
+ -reg \textit{value} & 1 & Regularization\\ 
+ \hline
+ -ms \textit{value} & 20 & Maximum seed value\\
+ \hline
+ --strand \textit{`+' or `-' or `both'} & both or +, depending on inputs & Which strand to attempt to train on (if applicable).\\
+ \hline
+\end{tabular}
+
+\section{Segmentation Parameters}
+
+In order to segment an input dataset based on a trained model, FStitch needs, at minimum, the following information:
+\begin{enumerate}
+ \item \textit{A trained model}
+ \item \textit{An input dataset}
+ \item \textit{An output file}
+\end{enumerate}
+
+Below is a table of all parameters corresponding to the above list of required information:
+
+\begin{tabular}{| l | p{8cm} |}
+ \hline
+ \textbf{Parameter} & \textbf{Description}\\
+ \hline
+ -w \textit{model or ``weights'' file} & This parameter allows the user to specify a training input file.\\
+ \hline
+ -r \textit{bedgraph file} & This parameter allows the user to specify a bedgraph file for FStitch to use as its input dataset.\\
+ \hline
+ -o \textit{output file} & This parameter specifies the name of the output annotations bed file that FStitch will write.\\
+ \hline
+\end{tabular}
+
+There are a few additional parameters that present options relating to how input and output data are to be processed:
+
+\begin{tabular}{| l | p{8cm} |}
+ \hline
+ \textbf{Parameter} & \textbf{Description}\\
+ \hline
+ --report \textit{`on' or `off' or `both'} & Whether to only report ``on'' regions, ``off'' regions, or both ``on'' and ``off'' regions.\\
+ \hline
+ --strand \textit{`+' or `-' or `both'} & Which strand to attempt to train on (if applicable).\\
+ \hline
+\end{tabular}
+
+\section{Parameters Common to Both Training and Segmentation}
+
+There are two classes of common parameters:
+\begin{enumerate}
+ \item Parameters that change the operation of FStitch regardless of the command used.
+ \item Parameters that behave similarly regardless of the command used.
+\end{enumerate}
+
+The following table documents the first class of common parameters:
+
+\begin{tabular}{| l | p{8cm} |}
+ \hline
+ \textbf{Parameter} & \textbf{Description}\\
+ \hline
+ -v & This option enables verbose logging.\\
+ \hline
+ -np \textit{number of processors} & This option allows FStitch to use up to the number of CPU threads specified to perform its tasks.\\
+ \hline
+\end{tabular}
+
+The following table documents the second class of common parameters:
+
+\begin{tabular} {| l | p{8cm} |}
+ \hline
+ \textbf{Parameter} & \textbf{Description}\\
+ \hline
+ -r \textit{read bedgraph} & Both `train' and `segment' need an input bedgraph file, so this parameter is the same for both.\\
+ \hline
+ -o \textit{output file} & Despite producing different kinds of outputs, both `train' and `segment' require the specification of an output file.\\
+ \hline
+ -chip & This parameter is necessary for both training and segmentation due to differences in how various sequencing protocols operate.\\
+ \hline
+ --strand & Which strand to attempt to train on (if applicable).\\
+ \hline
+\end{tabular}
+\end{document}
