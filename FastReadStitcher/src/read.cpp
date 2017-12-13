@@ -419,15 +419,15 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
                 cmpV=lineCompare(online, offline);
                 if(cmpV>0) //Ie. the starting position of line1>line2.
                 {
-                    lines.push_back(offline);
+                    lines.push_back(offline+"\t0");
                     offgood=getline(offFH, offline).good();
                 }
 
                 //Ie. the starting position of line1=line2.
                 else if(cmpV==0)
                 {
-                    lines.push_back(offline);
-                    lines.push_back(online);
+                    lines.push_back(offline+"\t0");
+                    lines.push_back(online+"\t1");
                     offgood=getline(offFH, offline).good();
                     ongood=getline(onFH, online).good();
                 }
@@ -435,7 +435,7 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
                 //Ie. the starting position of line1<line2.
                 else
                 {
-                    lines.push_back(online);
+                    lines.push_back(online+"\t1");
                     ongood=getline(onFH, online).good();
                 }
             }
@@ -443,13 +443,13 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
             //Attempt to push the rest of the data into the vector:
             while(ongood)
             {
-                lines.push_back(online);
+                lines.push_back(online+"\t1");
                 ongood=getline(onFH, online).good();
             }
 
             while(offgood)
             {
-                lines.push_back(offline);
+                lines.push_back(offline+"\t0");
                 offgood=getline(offFH, offline).good();
             }
 
@@ -469,7 +469,8 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
                         RETURN.EXIT     = true;
                         return RETURN;
                 }
-                if (not (lineArray[3]=="0" or lineArray[3]=="1")){
+                //NOTE: The splitter class doesn't remove carriage returns before line breaks:
+                if (not (lineArray[3].at(0)=='0' or lineArray[3].at(0)=='1')){
                         printf("Line: %s, must contain either 0 or 1 as training input\n",line.c_str() );
                         RETURN.EXIT     = true;
                         return RETURN;
