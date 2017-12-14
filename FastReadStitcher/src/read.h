@@ -49,6 +49,17 @@ public:
 	
 };
 
+typedef struct
+{
+    string in1;
+    char in1ch[80];
+    string in2;
+    char in2ch[80];
+
+    bool wasSplit=false;
+} splitinputfile_t;
+
+splitinputfile_t splitBedgraphFile(string);
 
 readTrainingFileReturn readTrainingFile(string);
 int lineCompare(string line1, string line2);

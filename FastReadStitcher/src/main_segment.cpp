@@ -6,6 +6,7 @@
 #include "write.h"
 #include "viterbi.h"
 #include "validate.h"
+#include "split.h"
 
 #include <string>
 using namespace std;
@@ -110,36 +111,124 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         cout<<"Reading in BedGraph File            : ";
         cout<<flush;
     }
-    map<string,contig *> ContigData 	= readBedGraphFileAll(BedGraphFile,num_proc);
-    if (ContigData.empty()){
-        cout<<"exiting..."<<endl;
-        return 0;
+
+    //First determine if the input bedgraph has negative values:
+    splitinputfile_t inbeds=splitBedgraphFile(BedGraphFile);
+
+    cout<<"Input bed file split? "<<inbeds.wasSplit<<endl;
+
+    //In this case, we need to segment twice:
+    if(inbeds.wasSplit)
+    {
+        vector<string> outFileToks=splitter(outFile, ".");
+
+        map<string,contig *> ContigData = readBedGraphFileAll(inbeds.in1, num_proc);
+        if (ContigData.empty()){
+            cout<<"exiting..."<<endl;
+            return 0;
+        }
+
+        if (verbose){
+            cout<<"done"<<endl;
+            cout<<flush;
+        }
+        //=================================================================
+        //Run Viterbi
+        if (verbose){
+            cout<<"Running Viterbi on positive examples        : ";
+            cout<<flush;
+        }
+        map<string, state*> results = runViterbi(ContigData, RTOF_params.W, RTOF_params.A,num_proc, RTOF_params.ChIP);
+        if (verbose){
+            cout<<"done"<<endl;
+            cout<<flush;
+        }
+        //=================================================================
+        //Write Viterbi Paths
+        if (verbose){
+            cout<<"Writing positive to IGV                      : ";
+            cout<<flush;
+        }
+        writeViterbiPaths(outFileToks[0]+".pos.bed", results, refFile, strand, RTOF_params.commandLine, commandLine);
+        if (verbose){
+            cout<<"done"<<endl;
+        }
+
+        ContigData 	= readBedGraphFileAll(inbeds.in2, num_proc);
+        if (ContigData.empty()){
+            cout<<"exiting..."<<endl;
+            return 0;
+        }
+
+        if (verbose){
+            cout<<"done"<<endl;
+            cout<<flush;
+        }
+
+        //=================================================================
+        //Run Viterbi
+        if (verbose){
+            cout<<"Running Viterbi on negative examples         : ";
+            cout<<flush;
+        }
+
+        results 	= runViterbi(ContigData, RTOF_params.W, RTOF_params.A,num_proc, RTOF_params.ChIP);
+        if (verbose){
+            cout<<"done"<<endl;
+            cout<<flush;
+        }
+        //=================================================================
+        //Write Viterbi Paths
+        if (verbose){
+            cout<<"Writing negative to IGV                      : ";
+            cout<<flush;
+        }
+        writeViterbiPaths(outFileToks[0]+".neg.bed", results, refFile, strand, RTOF_params.commandLine, commandLine);
+        if (verbose){
+            cout<<"done"<<endl;
+        }
+
+        remove(inbeds.in1ch);
+        remove(inbeds.in2ch);
     }
 
-    if (verbose){
-        cout<<"done"<<endl;
-        cout<<flush;
-    }
-    //=================================================================
-    //Run Viterbi
-    if (verbose){
-        cout<<"Running Viterbi                     : ";
-        cout<<flush;
-    }
-    map<string, state*> results 	= runViterbi(ContigData, RTOF_params.W, RTOF_params.A,num_proc, RTOF_params.ChIP);
-    if (verbose){
-        cout<<"done"<<endl;
-        cout<<flush;
-    }
-    //=================================================================
-    //Write Viterbi Paths
-    if (verbose){
-        cout<<"Writing to IGV                      : ";
-        cout<<flush;
-    }
-    writeViterbiPaths(outFile, results, refFile, strand, RTOF_params.commandLine, commandLine);
-    if (verbose){
-        cout<<"done"<<endl;
+    //Otherwise, we just need to segment once:
+    else
+    {
+        map<string,contig *> ContigData 	= readBedGraphFileAll(inbeds.in1,num_proc);
+        if (ContigData.empty()){
+            cout<<"exiting..."<<endl;
+            return 0;
+        }
+
+        if (verbose){
+            cout<<"done"<<endl;
+            cout<<flush;
+        }
+        //=================================================================
+        //Run Viterbi
+        if (verbose){
+            cout<<"Running Viterbi                     : ";
+            cout<<flush;
+        }
+        map<string, state*> results 	= runViterbi(ContigData, RTOF_params.W, RTOF_params.A,num_proc, RTOF_params.ChIP);
+        if (verbose){
+            cout<<"done"<<endl;
+            cout<<flush;
+        }
+        //=================================================================
+        //Write Viterbi Paths
+        if (verbose){
+            cout<<"Writing to IGV                      : ";
+            cout<<flush;
+        }
+        writeViterbiPaths(outFile, results, refFile, strand, RTOF_params.commandLine, commandLine);
+        if (verbose){
+            cout<<"done"<<endl;
+        }
+
+        //Now delete the input files:
+        remove(inbeds.in1ch);
     }
 
     return 1;

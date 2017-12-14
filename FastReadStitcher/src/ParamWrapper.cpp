@@ -161,6 +161,15 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     {
         this->train=true;
     }
+
+    else
+    {
+        printf("Error: command not specified. Please specify either 'train' \nor 'segment' immediately after the FStitch command.\n");
+        this->printUsage();
+        this->exit=true;
+
+        return;
+    }
     
     // Segment the inputs into argument, value pairs:
     for(i=2;i<argc;i++)
@@ -330,4 +339,5 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     //That should probably do it.
     
     printf("Strand specified: %d\n", this->strand);
+    //If, after all of this, we have an invalid mode:
 }

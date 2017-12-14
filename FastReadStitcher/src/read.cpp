@@ -6,12 +6,61 @@
 #include <unistd.h>
 #include <vector>
 #include <map>
+#include <cstring>
 #include <cmath>
+#include <cstdlib>
 #include "BaumWelch.h"
 #include "split.h"
 #include "validate.h"
 #include <stdexcept>
 using namespace std;
+
+splitinputfile_t splitBedgraphFile(string infilename)
+{
+    ifstream infile(infilename);
+    string line;
+    vector<string> lineToks;
+    splitinputfile_t out;
+    ofstream outfile1, outfile2;
+
+    strcpy(out.in1ch, "/tmp/tmpXXXXXX");
+    strcpy(out.in2ch, "/tmp/tmpXXXXXX");
+
+    //TODO: Figure out what to do with the file descriptor that this function returns.
+    //We just want the filename, not the handle.
+    //Should I close it?
+    close(mkstemp(out.in1ch));
+    out.in1=string(out.in1ch);
+    outfile1=ofstream(out.in1);
+
+    while(getline(infile, line))
+    {
+        lineToks=splitter(line, "\t");
+
+        //If we're negative:
+        if(stoi(lineToks[3])<0)
+        {
+            if(!out.wasSplit)
+            {
+                out.wasSplit=true;
+                close(mkstemp(out.in2ch));
+                out.in2=string(out.in2ch);
+                outfile2=ofstream(out.in2);
+            }
+
+            //We need to write the tokens individually:
+            outfile2<<lineToks[0]<<"\t"<<lineToks[1]<<"\t"<<lineToks[2]<<"\t"<<stoi(lineToks[3])*-1<<endl;
+        }
+
+        //If we're positive:
+        else
+        {
+            outfile1<<line<<endl;
+        }
+    }
+
+    return out;
+}
 
 string getChrom(string line){
 	const char * tab = "\t";
