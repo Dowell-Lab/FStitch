@@ -97,6 +97,32 @@ void ParamWrapper::dumpValues()
     cout<<"exit: "<<this->exit<<endl;
 }
 
+//This just sets default parameters:
+ParamWrapper::ParamWrapper()
+{
+    this->commandLine="UNIT TEST FILE";
+    this->strand=STRAND_POSITIVE;
+    this->report=REPORT_ON;
+    this->exit=false;
+    this->train=false;
+    this->segment=false;
+    this->eRNA=false;
+    this->verbose=true;
+    this->chip=false;
+    this->numProcs=8;
+    //Set learning parameters:
+    this->maxConvergenceIters=100;
+    this->learningRate=0.4;
+    this->convergenceThreshold=0.001;
+    this->regularization=1;
+    this->maxSeed=20;
+    //Set all split parameters, etc, to blank strings:
+    this->specialFileSplit=false;
+    this->specialFileName="";
+    this->readFileName="";
+    this->outFileName="";
+}
+
 ParamWrapper::ParamWrapper(int argc, char **argv)
 {
     int i;

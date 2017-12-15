@@ -64,9 +64,25 @@ validate.o: validate.cpp
 write.o: write.cpp
 	@${CXX} -c ${CXXFLAGS} ${PWD}/write.cpp 
 	@echo Compiled write
+
 ParamWrapper.o: ParamWrapper.cpp
 	@${CXX} -c ${CXXFLAGS} ${PWD}/ParamWrapper.cpp 
 	@echo Compiled ParamWrapper
+
+unittests.o: unittests.cpp
+	@${CXX} -c ${CXXFLAGS} ${PWD}/unittests.cpp
+	@echo Compiled UnitTests
+
+unittests: unittests.o BaumWelch.o NewtonsMethod.o read_in_parameters.o read.o main_train.o grabTrainingExamples.o interval_tree.o \
+		 split.o write.o main_segment.o viterbi.o validate.o ParamWrapper.o
+	@${CXX} ${CXXFLAGS} ${PWD}/unittests.o  ${PWD}/BaumWelch.o \
+		${PWD}/NewtonsMethod.o ${PWD}/read_in_parameters.o ${PWD}/read.o \
+		${PWD}/interval_tree.o ${PWD}/grabTrainingExamples.o ${PWD}/main_train.o \
+		${PWD}/split.o ${PWD}/write.o ${PWD}/main_segment.o ${PWD}/viterbi.o ${PWD}/validate.o ${PWD}/ParamWrapper.o -o unittests
+	
+	@echo Unit test executable built. Run ./unittests <training bed4 file> <bed4 dataset with positive and negative reads>
+	
+
 clean:
 	@rm -f *.o
 

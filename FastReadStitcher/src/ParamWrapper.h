@@ -68,6 +68,9 @@ public:
     bool verbose;
     
     ParamWrapper(int argc, char **argv);
+    
+    /* This generic constructor is used by unit tests to manipulate various options on the fly:*/
+    ParamWrapper();
     void printUsage();
     void dumpValues();
 };
