@@ -2,21 +2,22 @@
 
 using namespace std;
 
-splitoutput_t *genOnOff(string infile)
+splitoutput_t *genOnOff(string infilename)
 {
     splitoutput_t *out;
     string line;
     //This nasty mix of C and C++ file I/O brought to you by mkstemp's return value.
-    ifstream infile(infile);
+    ifstream infile(infilename);
     FILE *aFile;
     FILE *bFile;
     
     out=(splitoutput_t *) malloc(sizeof(splitoutput_t));
+    //This is simultaneously for safety and to shut valgrind up about uninitialized values:
+    memset((void*) out, 0, sizeof(splitoutput_t));
     
     //Open applicable file descriptors:
     strcpy(out->aCh, "/tmp/tmpXXXXXX");
     out->aFd=mkstemp(out->aCh);
-    out->a=out->aCh;
     aFile=fdopen(out->aFd, "w");
     
     strcpy(out->bCh, "/tmp/tmpXXXXXX");
@@ -50,16 +51,17 @@ splitoutput_t *genOnOff(string infile)
     return out;
 }
 
-splitoutput_t *genPosNeg(string infile)
+splitoutput_t *genPosNeg(string infilename)
 {
     splitoutput_t *out;
     string line;
     //This nasty mix of C and C++ file I/O brought to you by mkstemp's return value.
-    ifstream infile(infile);
+    ifstream infile(infilename);
     FILE *aFile;
     FILE *bFile;
     
     out=(splitoutput_t *) malloc(sizeof(splitoutput_t));
+    memset((void*) out, 0, sizeof(splitoutput_t));
     
     //Open applicable file descriptors:
     strcpy(out->aCh, "/tmp/tmpXXXXXX");
@@ -106,7 +108,7 @@ void cleanupSplitOutput(splitoutput_t *o)
 
 void printUnitUsage(char *unitName)
 {
-    printf("Usage: %s <training bed4 file> <bed4 histogram file>\n");
+    printf("Usage: %s <training bed4 file> <bed4 histogram file>\n", unitName);
     printf("Runs unit tests for FStitch given input training and histogram files.\n");
 }
 
@@ -129,6 +131,8 @@ int main(int argc, char **argv)
     splitTraining=genOnOff(trainfile);
     splitBed=genPosNeg(bedfile);
     
+    return 0;
+    
     w=new ParamWrapper();
     
     //Generate reference data with default parameters (relatively speaking):
@@ -137,16 +141,19 @@ int main(int argc, char **argv)
     w->readFileName=bedfile;
     w->specialFileName=trainfile;
     
-    main_train(w);
+    w->dumpValues();
+    return 0;
+    
+    run_main_train_pwrapper(w);
     
     printf("Training with split label file...\n");
     //Now set this up for on/off split training examples:
     w->outFileName="tout_onoffsplit.out";
-    w->specialFileName=splitTraining.a;
-    w->secondSpecialFileName=splitTraining.b;
+    w->specialFileName=splitTraining->a;
+    w->secondSpecialFileName=splitTraining->b;
     w->specialFileSplit=true;
     
-    main_train(w);
+    run_main_train_pwrapper(w);
     
     //Now just use the set of positive histograms:
     printf("Training with only positive inputs...\n");
@@ -154,9 +161,9 @@ int main(int argc, char **argv)
     w->specialFileName=trainfile;
     w->specialFileSplit=false;
     //This should be only the positive values:
-    w->readFileName=splitBed.a;
+    w->readFileName=splitBed->a;
     
-    main_train(w);
+    run_main_train_pwrapper(w);
     
     //Now perform segmentation tasks:
     printf("Segmenting with reference inputs...\n");

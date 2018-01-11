@@ -5,8 +5,9 @@
 #***************************************************************************/
 
 CXX             = g++
-CXXFLAGS        = -Wno-unused-variable -Wno-non-virtual-dtor -std=c++11  -fopenmp -Wno-write-strings
+CXXFLAGS        = -Wno-unused-variable -Wno-non-virtual-dtor -std=c++11  -fopenmp -Wno-write-strings -g
 EXEC            = ${PWD}/FStitch
+UNITTEST        = ${PWD}/unittest
 ARCH  			= getconf LONG_BIT
 
 CPP_FLAGS_32  	= -D32_BIT
@@ -14,13 +15,20 @@ CPP_FLAGS_64  	= -D64_BIT
 
 GCCVERSION 		= $(shell gcc --version | grep ^gcc | sed 's/^.* //g')
 FStitch: main.o BaumWelch.o NewtonsMethod.o read_in_parameters.o read.o main_train.o grabTrainingExamples.o interval_tree.o \
-		 split.o write.o main_segment.o viterbi.o validate.o ParamWrapper.o
+		 split.o write.o main_segment.o viterbi.o validate.o ParamWrapper.o unittests.o
 	@${CXX} ${CXXFLAGS} ${PWD}/main.o  ${PWD}/BaumWelch.o \
 		${PWD}/NewtonsMethod.o ${PWD}/read_in_parameters.o ${PWD}/read.o \
 		${PWD}/interval_tree.o ${PWD}/grabTrainingExamples.o ${PWD}/main_train.o \
 		${PWD}/split.o ${PWD}/write.o ${PWD}/main_segment.o ${PWD}/viterbi.o ${PWD}/validate.o ${PWD}/ParamWrapper.o -o ${EXEC}
 	@echo "========================================="
-	@echo Sucessfully Compiled
+	@echo Sucessfully Compiled FStitch executable.
+	@echo Building unit test executable...
+	@${CXX} ${CXXFLAGS} ${PWD}/unittests.o  ${PWD}/BaumWelch.o \
+		${PWD}/NewtonsMethod.o ${PWD}/read_in_parameters.o ${PWD}/read.o \
+		${PWD}/interval_tree.o ${PWD}/grabTrainingExamples.o ${PWD}/main_train.o \
+		${PWD}/split.o ${PWD}/write.o ${PWD}/main_segment.o ${PWD}/viterbi.o ${PWD}/validate.o ${PWD}/ParamWrapper.o -o ${UNITTEST}
+	@echo Done.
+	
 		
 main.o: main.cpp
 		@echo "========================="
@@ -71,7 +79,7 @@ ParamWrapper.o: ParamWrapper.cpp
 
 unittests.o: unittests.cpp
 	@${CXX} -c ${CXXFLAGS} ${PWD}/unittests.cpp
-	@echo Compiled UnitTests
+	@echo Compiled unittests
 
 unittests: unittests.o BaumWelch.o NewtonsMethod.o read_in_parameters.o read.o main_train.o grabTrainingExamples.o interval_tree.o \
 		 split.o write.o main_segment.o viterbi.o validate.o ParamWrapper.o
@@ -85,7 +93,4 @@ unittests: unittests.o BaumWelch.o NewtonsMethod.o read_in_parameters.o read.o m
 
 clean:
 	@rm -f *.o
-
-
-		
 

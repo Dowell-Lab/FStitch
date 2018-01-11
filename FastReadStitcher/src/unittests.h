@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <ifstream>
+#include <fstream>
 #include <cstring>
 
 #include "main_segment.h"
