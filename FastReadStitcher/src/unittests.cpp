@@ -18,10 +18,19 @@ splitoutput_t *genOnOff(string infilename)
     //Open applicable file descriptors:
     strcpy(out->aCh, "/tmp/tmpXXXXXX");
     out->aFd=mkstemp(out->aCh);
+    if(out->aFd<0)
+    {
+        printf("Error: could not open temporary file %s\n", out->aCh);
+    }
+    out->a=out->aCh;
     aFile=fdopen(out->aFd, "w");
     
     strcpy(out->bCh, "/tmp/tmpXXXXXX");
     out->bFd=mkstemp(out->bCh);
+    if(out->bFd<0)
+    {
+        printf("Error: could not open temporary file %s\n", out->bCh);
+    }
     out->b=out->bCh;
     bFile=fdopen(out->bFd, "w");
     
@@ -46,8 +55,10 @@ splitoutput_t *genOnOff(string infilename)
     }
     
     //These calls also close the corresponding descriptors. This is acceptable behavior.
-    fclose(aFile);
-    fclose(bFile);
+    //fclose(aFile);
+    //fclose(bFile);
+    out->aFile=aFile;
+    out->bFile=bFile;
     return out;
 }
 
@@ -95,15 +106,19 @@ splitoutput_t *genPosNeg(string infilename)
     }
     
     //These calls also close the corresponding descriptors. This is acceptable behavior.
-    fclose(aFile);
-    fclose(bFile);
+    //fclose(aFile);
+    //fclose(bFile);
+    out->aFile=aFile;
+    out->bFile=bFile;
     return out;
 }
 
 void cleanupSplitOutput(splitoutput_t *o)
 {
-    remove(o->aCh);
-    remove(o->bCh);
+    fclose(o->aFile);
+    fclose(o->bFile);
+    //remove(o->aCh);
+    //remove(o->bCh);
 }
 
 void printUnitUsage(char *unitName)
@@ -131,8 +146,6 @@ int main(int argc, char **argv)
     splitTraining=genOnOff(trainfile);
     splitBed=genPosNeg(bedfile);
     
-    return 0;
-    
     w=new ParamWrapper();
     
     //Generate reference data with default parameters (relatively speaking):
@@ -142,7 +155,6 @@ int main(int argc, char **argv)
     w->specialFileName=trainfile;
     
     w->dumpValues();
-    return 0;
     
     run_main_train_pwrapper(w);
     

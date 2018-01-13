@@ -437,6 +437,13 @@ int lineCompare(string line1, string line2)
     return l1col-l2col;
 }
 
+bool fileExists(string filename)
+{
+    struct stat s;
+    
+    return stat(filename.c_str(), &s)==0;
+}
+
 readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
         readTrainingFileReturn RETURN;
         map<string, interval *>         R;
@@ -455,6 +462,12 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
         string offline;
         int cmpV;
         int i;
+        
+        cout<<onFH.is_open();
+        cout<<offFH.is_open();
+        
+        cout<<onfile<<endl;
+        cout<<offfile<<endl;
 
         // Fill up the vector of lines while taking advantage of the fact that the input
         // files *should* be sorted.
@@ -463,6 +476,11 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
             ongood=getline(onFH, online).good();
             offgood=getline(offFH, offline).good();
 
+            cout << "ongood "<<ongood<<" offgood "<<offgood<<endl;
+            cout<<online<<endl;
+            cout<<offline<<endl;
+            
+            
             while(ongood&&offgood)
             {
                 cmpV=lineCompare(online, offline);
@@ -501,6 +519,8 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
                 lines.push_back(offline+"\t0");
                 offgood=getline(offFH, offline).good();
             }
+            
+            cout << "Got " << lines.size() << " lines in split training file." << endl;
 
             //Now that we have a proper set of lines:
             for(i=0;i<lines.size();i++)

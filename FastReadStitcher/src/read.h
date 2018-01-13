@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <cstdlib>
+#include <sys/stat.h>
 using namespace std;
 
 #define CONTIG_STRAND_POS 1
@@ -60,7 +61,7 @@ typedef struct
 } splitinputfile_t;
 
 splitinputfile_t splitBedgraphFile(string);
-
+bool fileExists(string filename);
 readTrainingFileReturn readTrainingFile(string);
 int lineCompare(string line1, string line2);
 readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile);

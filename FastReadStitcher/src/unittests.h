@@ -16,10 +16,12 @@ typedef struct
     string a;
     char aCh[80];
     int aFd;
+    FILE *aFile;
     
     string b;
     char bCh[80];
     int bFd;
+    FILE *bFile;
 } splitoutput_t;
 
 /* genOnOff -- Splits an input training file into on and off regions to further test parameters. 
