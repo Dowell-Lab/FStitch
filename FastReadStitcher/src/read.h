@@ -60,13 +60,22 @@ typedef struct
     bool wasSplit=false;
 } splitinputfile_t;
 
+typedef struct
+{
+    char *tempName;
+    FILE *tempFile;
+} tmpfile_t;
+
 splitinputfile_t splitBedgraphFile(string);
 bool fileExists(string filename);
 readTrainingFileReturn readTrainingFile(string);
 int lineCompare(string line1, string line2);
+int histogramLineCompare(string line1, string line2, string prevWrittenLine);
 readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile);
 map<string,contig *> readBedGraphFile(string, map<string, interval *>, bool);
 map<string,contig *> readBedGraphFileStrand(string, map<string, interval *>, bool, int);
+tmpfile_t mergeSplitBedGraph(string, string);
+map<string,contig *> readSplitBedGraphFileStrand(string, string, map<string, interval *>, bool, int);
 map<string, map<string, interval *>> readRefSeq(string);
 RTOF readTrainingOutFile(string);
 map<string,contig *> readBedGraphFileAll(string,int);

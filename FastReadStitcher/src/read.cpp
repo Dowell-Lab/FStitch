@@ -167,6 +167,7 @@ contigOut makeContig(string FILE, int start, int stop){
 		if (lineArray.size()!=4){
                     cout<<endl;
                     cout<<"couldn't parse line: "+line+"\n";
+                    cout<<"number of tokens found in given line: "<<lineArray.size()<<endl;
                     CO.EXIT=true;
                     return CO;
 		}else{
@@ -276,6 +277,7 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                 if (lineArray.size()!=4){
                     cout<<endl;
                     cout<<"couldn't parse line: "+line+"\n";
+                    cout<<"Number of tokens found in line: "<<lineArray.size()<<endl;
                     CO.EXIT=true;
                     return CO;
                 }else{
@@ -435,6 +437,38 @@ int lineCompare(string line1, string line2)
     l2col=atoi(ptr);
 
     return l1col-l2col;
+}
+
+int histogramLineCompare(string line1, string line2, string prevWrittenLine)
+{
+    int cmpV;
+    vector<string> l1toks=splitter(line1, "\t");
+    vector<string> l2toks=splitter(line2, "\t");
+    
+    //First, determine if these are for the same chromosome:
+    if(l1toks[0]==l2toks[0])
+    {
+        return atoi(l1toks[1].c_str())-atoi(l2toks[1].c_str());
+    }
+    
+    //If they aren't, then give priority to the most similar line.
+    else
+    {
+        vector<string> prevLineToks=splitter(prevWrittenLine, "\t");
+        
+        //A negative value indicates that line 1 has a lesser starting position than line 2 and should be written first.
+        if(prevLineToks[0]==l1toks[0])
+        {
+            return -1;
+        }
+        
+        //A positive value indicates that line 1 has a greater starting position than line 2 and should be written last.
+        else
+        {
+            return 1;
+        }
+    }
+    
 }
 
 bool fileExists(string filename)
@@ -634,6 +668,109 @@ map<string,contig *> readBedGraphFileStrand(string FILE, map<string, interval *>
                 D.clear();
         }
         return D;
+}
+
+//NOTE: We should be sorting by chromosome first, then position within the chromosome.
+tmpfile_t mergeSplitBedGraph(string posFile, string negFile)
+{
+    tmpfile_t retTmpFile;
+    int fd;
+    ifstream posInFile(posFile);
+    ifstream negInFile(negFile);
+    bool posGood;
+    bool negGood;
+    string posLine;
+    string negLine;
+    int cmpV;
+    
+    retTmpFile.tempName=strdup("tmpXXXXXX");
+    fd=mkstemp(retTmpFile.tempName);
+    
+    retTmpFile.tempFile=fdopen(fd, "w+");
+    
+    if(posInFile && negInFile)
+    {
+        posGood=getline(posInFile, posLine).good();
+        negGood=getline(negInFile, negLine).good();
+        
+        
+        while(posGood && negGood)
+        {
+            cmpV=lineCompare(posLine, negLine);
+            if(cmpV>0) //Ie. the starting position of line1>line2.
+            {
+                fprintf(retTmpFile.tempFile, "%s\n", negLine.c_str());
+                negGood=getline(negInFile, negLine).good();
+            }
+
+            //Ie. the starting position of line1=line2.
+            else if(cmpV==0)
+            {
+                fprintf(retTmpFile.tempFile, "%s\n", negLine.c_str());
+                fprintf(retTmpFile.tempFile, "%s\n", posLine.c_str());
+                posGood=getline(negInFile, negLine).good();
+                negGood=getline(posInFile, posLine).good();
+            }
+
+            //Ie. the starting position of line1<line2.
+            else
+            {
+                fprintf(retTmpFile.tempFile, "%s\n", posLine.c_str());
+                posGood=getline(posInFile, posLine).good();
+            }
+        }
+
+        //Attempt to push the rest of the data into the vector:
+        while(posGood)
+        {
+            fprintf(retTmpFile.tempFile, "%s\n", posLine.c_str());
+            posGood=getline(posInFile, posLine).good();
+        }
+
+        while(negGood)
+        {
+            fprintf(retTmpFile.tempFile, "%s\n", negLine.c_str());
+            negGood=getline(negInFile, negLine).good();
+        }
+        
+        fflush(retTmpFile.tempFile);
+    }
+    
+    else
+    {
+        fclose(retTmpFile.tempFile);
+        retTmpFile.tempFile=NULL;
+    }
+        
+    return retTmpFile;
+}
+
+map<string,contig *> readSplitBedGraphFileStrand(string posFile, string negFile, map<string, interval *> T, bool verbose, int strand)
+{
+    tmpfile_t t;
+    
+    t=mergeSplitBedGraph(posFile, negFile);
+    
+    //The merge was unsuccessful. 
+    if(!t.tempFile)
+    {
+        free(t.tempName);
+        map<string, contig*> r;
+        cout<<"Error: merge unsuccessful."<<endl;
+        return r;
+    }
+    
+    else
+    {
+        string FILE(t.tempName);
+        map<string, contig*> r=readBedGraphFileStrand(FILE, T, verbose, strand);
+        fclose(t.tempFile);
+        //remove(t.tempName);
+        cout<<"Removing temporary merge file: "<<t.tempName<<endl;
+        free(t.tempName);
+        
+        return r;
+    }
 }
 
 map<string,contig *> readBedGraphFileAll(string FILE,int np){

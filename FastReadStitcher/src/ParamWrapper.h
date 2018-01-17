@@ -45,6 +45,10 @@ public:
     //This represents the raw read data:
     string readFileName;
     
+    //This will represent the negative strand.
+    bool readFileSplit;
+    string secondReadFileName;
+    
     bool specialFileSplit;
     string secondSpecialFileName;
     

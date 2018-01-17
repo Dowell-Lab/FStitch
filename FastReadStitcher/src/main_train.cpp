@@ -16,6 +16,8 @@ int run_main_train_pwrapper(ParamWrapper *p)
     // General Parameters
 
     string BedGraphFile = p->readFileName;
+    string BedGraphNegFile=p->secondReadFileName;
+    bool BedGraphSplit=p->readFileSplit;
     string TrainingFile = p->specialFileName;
     
     string outFile = p->outFileName;
@@ -91,12 +93,28 @@ int run_main_train_pwrapper(ParamWrapper *p)
     //TODO: Implement proper support for training on both strands.
     if(p->strand==STRAND_POSITIVE || p->strand==STRAND_BOTH)
     {
-        ContigData=readBedGraphFileStrand(BedGraphFile, TrainingIntervals, 1, 0);
+        if(BedGraphSplit)
+        {
+            ContigData=readSplitBedGraphFileStrand(BedGraphFile, BedGraphNegFile, TrainingIntervals, 1, 0);
+        }
+        
+        else
+        {
+            ContigData=readBedGraphFileStrand(BedGraphFile, TrainingIntervals, 1, 0);
+        }
     }
     
     else if(p->strand==STRAND_NEGATIVE)
     {
-        ContigData=readBedGraphFileStrand(BedGraphFile, TrainingIntervals, 1, 1);
+        if(BedGraphSplit)
+        {
+            ContigData=readSplitBedGraphFileStrand(BedGraphFile, BedGraphNegFile, TrainingIntervals, 1, 1);
+        }
+        
+        else
+        {
+            ContigData=readBedGraphFileStrand(BedGraphFile, TrainingIntervals, 1, 1);
+        }
     }
     
     //map<string,contig *> ContigData = readBedGraphFileStrand(BedGraphFile,TrainingIntervals,1,);

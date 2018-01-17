@@ -12,8 +12,14 @@ void ParamWrapper::printUsage()
     printf("\n");
     printf("If 'train' is specified, then [arguments] may be one or more of the\n");
     printf("following:\n");
-    printf(" -r <read bedgraph>   This specifies the file containing  the histogram\n");
-    printf("                      of all reads.\n");
+    printf(" -r <read bedgraph>   This specifies the file containing the histogram\n");
+    printf("                      of all reads as a BED4 file.\n");
+    printf(" -rp <pos read BED4>  If -r is not specified, then this specifies the file\n");
+    printf("                      containing the histogram of positive reads as a BED4 file.\n");
+    printf(" -rn <neg read BED4>  If -r is not specified, then this specifies the file\n");
+    printf("                      containing the histogram of negative reads as a BED4 file.\n");
+    printf("                      This parameter must be used in conjunction with -rp\n");
+    printf("                      regardless of the strand used for training.\n");
     printf(" -o <output file>     This specifies the file to store.\n");
     printf(" -np <number>         This specifies the number of processors to run on.\n");
     printf("                      The default value is 8.\n");
@@ -47,7 +53,7 @@ void ParamWrapper::printUsage()
     //printf("                   chr[tab]start[tab]stop[tab]1 or 0[tab]score[tab]strand\n");
     //printf("\n");
     //printf("If only a single strand was selected:\n");
-    printf("You must speciy a training file. If --on or --off is specified, then\n");
+    printf("You must specify a training file. If --on or --off is specified, then\n");
     printf("both --on and --off must be specified. -t can be used instead for training\n");
     printf("files in which both on and off regions are present.\n");
     printf(" --on <file>       This specifies the training data marking all \"on\"\n");
@@ -76,7 +82,13 @@ void ParamWrapper::printUsage()
     printf("                        command.\n");
 
     printf(" -r <read bedgraph>     This specifies the file containing  the histogram\n");
-    printf("                        of all reads.\n");
+    printf("                        of all reads as a bed4 file.\n");
+    printf(" -rp <pos read BED4>    If -r is not specified, then this specifies the file\n");
+    printf("                        containing the histogram of positive reads as a BED4 file.\n");
+    printf(" -rn <neg read BED4>    If -r is not specified, then this specifies the file\n");
+    printf("                        containing the histogram of negative reads as a BED4 file.\n");
+    printf("                        This parameter must be used in conjunction with -rp\n");
+    printf("                        regardless of the strand used for training.\n");
     printf(" -o <file>              This specifies the output annotation file.\n");
     printf("");
 }
@@ -150,6 +162,9 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     this->verbose=false;
     this->chip=false;
     this->numProcs=8;
+    
+    this->readFileSplit=false;
+    this->secondReadFileName="";
     
     // Set some of the additional parameters used to alter how the program learns:
     this->maxConvergenceIters=100;
@@ -237,6 +252,18 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
         if(it->first=="-r")
         {
             this->readFileName=it->second;
+        }
+        
+        else if(it->first=="-rp")
+        {
+            this->readFileSplit=true;
+            this->readFileName=it->second;
+        }
+        
+        else if(it->first=="-rn")
+        {
+            this->readFileSplit=true;
+            this->secondReadFileName=it->second;
         }
         
         else if(it->first=="-cm")
