@@ -5,11 +5,13 @@
 #include <string>
 #include <fstream>
 #include <cstring>
+#include <cmath>
 
 #include "main_segment.h"
 #include "main_train.h"
 #include "ParamWrapper.h"
 #include "split.h"
+#include "read.h"
 
 typedef struct
 {
@@ -37,6 +39,12 @@ splitoutput_t *genOnOff(string infile);
  *  b = the negative strand data file.
  */
 splitoutput_t *genPosNeg(string infile);
+
+/* checkWeightsConsistency -- Checks a given set of trained weights against a "golden standard" to determine if they are similar enough.*/
+bool checkWeightsConsistency(string goldStandard, string checkFile, double errorMargin);
+
+/* checkBedsConsistency -- Checks a given output bed file against a "golden standard" bedgraph to determine if they are similar enough.*/
+bool checkBedsConsistency(string goldStandard, string checkFile);
 
 /* cleanupSplitOutput -- Deletes any temporary files associated with a given splitoutput_t object. */
 void cleanupSplitOutput(splitoutput_t *o);

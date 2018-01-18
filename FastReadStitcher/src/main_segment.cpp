@@ -36,6 +36,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     //=================================================================
     // General Parameters
     string BedGraphFile 		= p->readFileName;
+    string SecondBedGraphFile           = p->secondReadFileName;
     string TrainingOutFile 		= p->specialFileName;
     string outFile 				= p->outFileName;
     //Todo: add functionality for this!
@@ -111,9 +112,60 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         cout<<"Reading in BedGraph File            : ";
         cout<<flush;
     }
+    
+    splitinputfile_t inbeds;
+    
+    //Were we passed individual bedgraph nuggets?
+    if(w->readFileSplit)
+    {
+        //Determine which value is which:
+        if(BedGraphFile=="" && SecondBedGraphFile!="")
+        {
+            if(strand!="-")
+            {
+                cerr<<"Error: Mismatch between provided histogram bedgraph and training parameters."<<endl;
+                return 0;
+            }
+            
+            else
+            {
+                inbeds.wasSplit=false;
+                inbeds.in1=SecondBedGraphFile;
+            }
+        }
+        
+        else if(BedGraphFile!="" && SecondBedGraphFile!="")
+        {
+            inbeds.wasSplit=true;
+            inbeds.in1=BedGraphFile;
+            inbeds.in2=SecondBedGraphFile;
+        }
+        
+        else if(BedGraphFile!="" && SecondBedGraphFile=="")
+        {
+            //If this doesn't match the selected strand, then we have a problem:
+            if(strand!="+")
+            {
+                cerr<<"Error: Mismatch between provided histogram bedgraph and training parameters."<<endl;
+                return 0;
+            }
+            
+            else
+            {
+                inbeds.wasSplit=false;
+                inbeds.in1=BedGraphFile;
+            }
+        }
+        
+        else
+        {
+            cerr<<"Error: No viable histogram bedgraph file specified. Exiting..."<<endl;
+            return 0;
+        }
+    }
 
     //First determine if the input bedgraph has negative values:
-    splitinputfile_t inbeds=splitBedgraphFile(BedGraphFile);
+    inbeds=splitBedgraphFile(BedGraphFile);
 
     cout<<"Input bed file split? "<<inbeds.wasSplit<<endl;
 

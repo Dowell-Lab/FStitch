@@ -496,12 +496,6 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
         string offline;
         int cmpV;
         int i;
-        
-        cout<<onFH.is_open();
-        cout<<offFH.is_open();
-        
-        cout<<onfile<<endl;
-        cout<<offfile<<endl;
 
         // Fill up the vector of lines while taking advantage of the fact that the input
         // files *should* be sorted.
@@ -509,11 +503,6 @@ readTrainingFileReturn readSplitTrainingFile(string onfile, string offfile){
         {
             ongood=getline(onFH, online).good();
             offgood=getline(offFH, offline).good();
-
-            cout << "ongood "<<ongood<<" offgood "<<offgood<<endl;
-            cout<<online<<endl;
-            cout<<offline<<endl;
-            
             
             while(ongood&&offgood)
             {
@@ -682,6 +671,7 @@ tmpfile_t mergeSplitBedGraph(string posFile, string negFile)
     string posLine;
     string negLine;
     int cmpV;
+    string prevLine;
     
     retTmpFile.tempName=strdup("tmpXXXXXX");
     fd=mkstemp(retTmpFile.tempName);
@@ -693,13 +683,16 @@ tmpfile_t mergeSplitBedGraph(string posFile, string negFile)
         posGood=getline(posInFile, posLine).good();
         negGood=getline(negInFile, negLine).good();
         
+        //For the first line:
+        prevLine=posGood;
         
         while(posGood && negGood)
         {
-            cmpV=lineCompare(posLine, negLine);
+            cmpV=histogramLineCompare(posLine, negLine, prevLine);
             if(cmpV>0) //Ie. the starting position of line1>line2.
             {
                 fprintf(retTmpFile.tempFile, "%s\n", negLine.c_str());
+                prevLine=negLine;
                 negGood=getline(negInFile, negLine).good();
             }
 
@@ -708,14 +701,16 @@ tmpfile_t mergeSplitBedGraph(string posFile, string negFile)
             {
                 fprintf(retTmpFile.tempFile, "%s\n", negLine.c_str());
                 fprintf(retTmpFile.tempFile, "%s\n", posLine.c_str());
-                posGood=getline(negInFile, negLine).good();
-                negGood=getline(posInFile, posLine).good();
+                prevLine=posLine;
+                posGood=getline(posInFile, posLine).good();
+                negGood=getline(negInFile, negLine).good();
             }
 
             //Ie. the starting position of line1<line2.
             else
             {
                 fprintf(retTmpFile.tempFile, "%s\n", posLine.c_str());
+                prevLine=posLine;
                 posGood=getline(posInFile, posLine).good();
             }
         }
@@ -745,6 +740,23 @@ tmpfile_t mergeSplitBedGraph(string posFile, string negFile)
     return retTmpFile;
 }
 
+vector<string> readFileLines(string fileName)
+{
+    ifstream inF(fileName);
+    string str;
+    vector<string> outVect;
+    
+    if(inF)
+    {
+        while(getline(inF, str).good())
+        {
+            outVect.push_back(str);
+        }
+    }
+    
+    return outVect;
+}
+
 map<string,contig *> readSplitBedGraphFileStrand(string posFile, string negFile, map<string, interval *> T, bool verbose, int strand)
 {
     tmpfile_t t;
@@ -765,7 +777,7 @@ map<string,contig *> readSplitBedGraphFileStrand(string posFile, string negFile,
         string FILE(t.tempName);
         map<string, contig*> r=readBedGraphFileStrand(FILE, T, verbose, strand);
         fclose(t.tempFile);
-        //remove(t.tempName);
+        remove(t.tempName);
         cout<<"Removing temporary merge file: "<<t.tempName<<endl;
         free(t.tempName);
         

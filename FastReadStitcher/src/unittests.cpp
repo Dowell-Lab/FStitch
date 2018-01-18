@@ -124,14 +124,124 @@ void cleanupSplitOutput(splitoutput_t *o)
 {
     fclose(o->aFile);
     fclose(o->bFile);
-    //remove(o->aCh);
-    //remove(o->bCh);
+    remove(o->aCh);
+    remove(o->bCh);
 }
 
 void printUnitUsage(char *unitName)
 {
     printf("Usage: %s <training bed4 file> <bed4 histogram file>\n", unitName);
     printf("Runs unit tests for FStitch given input training and histogram files.\n");
+}
+
+/* This value represents how far "off" a given value can be from */
+#define ACCEPTABLE_MARGIN 0.01
+
+bool checkWeightsConsistency(string goldStandard, string checkFile, double errorMargin)
+{
+    vector<string> goldStandardLines;
+    vector<string> checkFileLines;
+    vector<string> gsToks;
+    vector<string> cfToks;
+    int goldStandardStart;
+    int checkStart;
+    int i, j;
+    int nRemaining;
+    double g, c;
+    
+    goldStandardLines=readFileLines(goldStandard);
+    checkFileLines=readFileLines(checkFile);
+    
+    goldStandardStart=0;
+    checkStart=0;
+    
+    while(goldStandardLines[goldStandardStart][0]=='#')
+    {
+        goldStandardStart++;
+    }
+    
+    while(checkFileLines[checkStart][0]=='#')
+    {
+        checkStart++;
+    }
+    
+    //Now that we have appropriate starting positions, let's attempt to compare our outputs.
+    //This first comparison should be whether or not the training process converged:
+    gsToks=splitter(goldStandardLines[goldStandardStart], ":");
+    cfToks=splitter(checkFileLines[checkStart], ":");
+    
+    if(gsToks[1]!=cfToks[1])
+    {
+        return false;
+    }
+    goldStandardStart++;
+    checkStart++;
+    
+    //The second comparison is of the final log likelihood:
+    g=atof(splitter(goldStandardLines[goldStandardStart], ":")[1].c_str());
+    c=atof(splitter(checkFileLines[checkStart], ":")[1].c_str());
+    
+    if(fabs(g-c)>errorMargin)
+    {
+        return false;
+    }
+    
+    goldStandardStart++;
+    checkStart++;
+    
+    nRemaining=goldStandardLines.size()-goldStandardStart;
+    
+    //Now we get to the fun part. Each of the next few lines contains a comma separated list of values.
+    for(i=0;i<nRemaining;i++)
+    {
+        //This is an awful implementation;
+        gsToks=splitter(splitter(goldStandardLines[goldStandardStart+i], ":")[1], ",");
+        cfToks=splitter(splitter(checkFileLines[checkStart+i], ":")[1], ","); 
+        
+        if(gsToks.size()!=cfToks.size())
+        {
+            printf("Line size mismatch for gold standard %d and check %d\n", goldStandardStart+i, checkStart+i);
+            return false;
+        }
+        
+        for(j=0;j<gsToks.size();j++)
+        {
+            g=atof(gsToks[j].c_str());
+            c=atof(cfToks[j].c_str());
+            
+            if(fabs(g-c)>errorMargin)
+            {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
+bool checkBedsConsistency(string goldStandard, string checkFile)
+{
+    vector<string> goldStandardLines;
+    vector<string> checkFileLines;
+    int i;
+    
+    goldStandardLines=readFileLines(goldStandard);
+    checkFileLines=readFileLines(checkFile);
+    
+    if(goldStandardLines.size()!=checkFileLines.size())
+    {
+        return false;
+    }
+    
+    for(i=1;i<goldStandardLines.size();i++)
+    {
+        if(goldStandardLines[i]!=checkFileLines[i])
+        {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 int main(int argc, char **argv)
@@ -156,7 +266,7 @@ int main(int argc, char **argv)
     w=new ParamWrapper();
     
     //Generate reference data with default parameters (relatively speaking):
-    /*
+    
     printf("\nGenerating reference training output...\n");
     w->outFileName="tout_ref.out";
     w->readFileName=bedfile;
@@ -165,8 +275,8 @@ int main(int argc, char **argv)
     w->dumpValues();
     
     run_main_train_pwrapper(w);
-    */
-    /*
+    
+    
     printf("\nTraining with split label file...\n");
     //Now set this up for on/off split training examples:
     w->outFileName="tout_onoffsplit.out";
@@ -175,25 +285,70 @@ int main(int argc, char **argv)
     w->specialFileSplit=true;
     
     run_main_train_pwrapper(w);
-    */
-    //Now just use the set of positive histograms:
-    printf("\nTraining with only positive inputs...\n");
-    w->outFileName="tout_posonly.out";
+    
+    //Now use a split input histogram:
+    printf("\nTraining with split input histogram bedgraph...\n");
+    w->outFileName="tout_splitbed.out";
     w->specialFileName=trainfile;
     w->specialFileSplit=false;
     //This should be only the positive values:
     w->readFileSplit=true;
     w->readFileName=splitBed->a;
     w->secondReadFileName=splitBed->b;
-    
-    
     run_main_train_pwrapper(w);
     
+    //Now split both types of inputs:
+    w->outFileName="tout_bothsplit.out";
+    w->specialFileName=splitTraining->a;
+    w->secondSpecialFileName=splitTraining->b;
+    w->specialFileSplit=true;
+    run_main_train_pwrapper(w);
+    
+    printf("\nDetermining if all training output files are consistent...\n");
+    printf("tout_ref.out vs tout_onoffsplit.out.........");
+    checkWeightsConsistency("tout_ref.out", "tout_onoffsplit.out", ACCEPTABLE_MARGIN) ? printf("PASS\n") : printf("FAIL\n");
+    printf("tout_ref.out vs tout_splitbed.out...........");
+    checkWeightsConsistency("tout_ref.out", "tout_splitbed.out", ACCEPTABLE_MARGIN) ? printf("PASS\n") : printf("FAIL\n");
+    printf("tout_ref.out vs tout_bothsplit.out..........");
+    checkWeightsConsistency("tout_ref.out", "tout_bothsplit.out", ACCEPTABLE_MARGIN) ? printf("PASS\n") : printf("FAIL\n");
+    
     //Now perform segmentation tasks:
+    
     printf("\nSegmenting with reference inputs...\n");
+    w->outFileName="tout_ref.bed";
+    w->strand=STRAND_POSITIVE;
+    w->readFileSplit=false;
+    w->readFileName=bedfile;
+    //This corresponds to the -w parameter:
+    w->specialFileName="tout_ref.out";
+    w->specialFileSplit=false;
+    run_main_segment_pwrapper(w);
     
     printf("\nSegmenting with inputs generated with split label file...\n");
-    printf("\nSegmenting with inputs generated with positive data only...\n");
+    w->outFileName="tout_onoffsplit.bed";
+    w->specialFileName="tout_onoffsplit.out";
+    run_main_segment_pwrapper(w);
+    
+    printf("\nSegmenting with inputs generated with split input histogram bedgraph...\n");
+    w->outFileName="tout_splitbed.bed";
+    w->specialFileName="tout_splitbed.out";
+    run_main_segment_pwrapper(w);
+    
+    printf("\nSegmenting with inputs generated with only positive points on input histogram...\n");
+    w->outFileName="tout_posbed.bed";
+    w->specialFileName="tout_posbed.bed";
+    run_main_segment_pwrapper(w);
+    
+    printf("\nSegmenting with reference inputs given split histogram.\n");
+    w->outFileName="tout_splithist.bed";
+    w->specialFileName="tout_ref.bed";
+    w->readFileSplit=true;
+    w->readFileName=splitBed->a;
+    w->secondReadFileName=splitBed->b;
+    run_main_segment_pwrapper(w);
+    
+    //Now that we have output files, we need to ensure that they're all consistent:
+    
     
     cleanupSplitOutput(splitTraining);
     cleanupSplitOutput(splitBed);

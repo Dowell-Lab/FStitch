@@ -79,5 +79,6 @@ map<string,contig *> readSplitBedGraphFileStrand(string, string, map<string, int
 map<string, map<string, interval *>> readRefSeq(string);
 RTOF readTrainingOutFile(string);
 map<string,contig *> readBedGraphFileAll(string,int);
+vector<string> readFileLines(string fileName);
 
 #endif
