@@ -139,6 +139,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             inbeds.wasSplit=true;
             inbeds.in1=BedGraphFile;
             inbeds.in2=SecondBedGraphFile;
+            cout<<"in1: "<<inbeds.in1<<" in2: "<<inbeds.in2<<endl;
         }
         
         else if(BedGraphFile!="" && SecondBedGraphFile=="")

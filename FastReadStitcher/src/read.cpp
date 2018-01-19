@@ -201,6 +201,7 @@ contigOut makeContig(string FILE, int start, int stop){
                             //could then be discarded?
                             strand=CONTIG_STRAND_NEG;
                         }
+                        
                         cout<<"Element 3 could not be converted"<<endl;
                     }
                     
