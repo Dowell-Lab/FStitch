@@ -176,8 +176,13 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     if(inbeds.wasSplit)
     {
         vector<string> outFilePathToks=splitter(outFile, "/");
-        vector<string> outFileToks=splitter(outFilePathToks[outFilePathToks.size()-1, ".");
+        string outFilePathPrefix="";
+        for(int i=0;i<outFilePathToks.size()-1;i++)
+        {
+            outFilePathPrefix+=outFilePathToks[i]+"/";
+        }
         
+        vector<string> outFileToks=splitter(outFilePathToks[outFilePathToks.size()-1], ".");
 
         map<string,contig *> ContigData = readBedGraphFileAll(inbeds.in1, num_proc);
         if (ContigData.empty()){
@@ -207,7 +212,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             cout<<flush;
         }
         
-        writeViterbiPaths(outFileToks[0]+".pos.bed", results, refFile, strand, RTOF_params.commandLine, commandLine);
+        writeViterbiPaths(outFilePathPrefix+outFileToks[0]+".pos.bed", results, refFile, strand, RTOF_params.commandLine, commandLine);
         if (verbose){
             cout<<"done"<<endl;
         }
@@ -241,7 +246,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             cout<<"Writing negative to IGV                      : ";
             cout<<flush;
         }
-        writeViterbiPaths(outFileToks[0]+".neg.bed", results, refFile, strand, RTOF_params.commandLine, commandLine);
+        writeViterbiPaths(outFilePathPrefix+outFileToks[0]+".neg.bed", results, refFile, strand, RTOF_params.commandLine, commandLine);
         if (verbose){
             cout<<"done"<<endl;
         }
