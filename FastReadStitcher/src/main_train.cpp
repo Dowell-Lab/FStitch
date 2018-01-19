@@ -68,7 +68,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
     }
 
     if (TrainReturn.EXIT){
-        cout<<"exiting..."<<endl;
+        cout<<"TrainReturn.EXIT set. exiting..."<<endl;
         return 0;
     }
     map<string, interval *> TrainingIntervals = TrainReturn.result;
@@ -132,7 +132,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
     //GET DATA FROM TRAINING INTERVALS
     run_out RO = run_grabTrainingExamples(R, ContigData, ChIP);
     if (RO.EXIT){
-        cout<<"exiting..."<<endl;
+        cout<<"RO.EXIT set. exiting..."<<endl;
         return 0;
     }
     if (verbose){

@@ -350,7 +350,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             }
         }
         
-        else if(it->first=="-a")
+        else if(it->first=="-t")
         {
             this->specialFileName=it->second;
             // This should take care of the special case in which this value is specified last.

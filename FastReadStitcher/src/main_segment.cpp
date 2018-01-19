@@ -96,7 +96,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     RTOF RTOF_params 					= readTrainingOutFile(TrainingOutFile);
 
     if (RTOF_params.EXIT){
-        cout<<"exiting..."<<endl;
+        cout<<"RTOF_params.EXIT set. exiting..."<<endl;
         return 0;
     }
     if (verbose){
@@ -178,7 +178,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
 
         map<string,contig *> ContigData = readBedGraphFileAll(inbeds.in1, num_proc);
         if (ContigData.empty()){
-            cout<<"exiting..."<<endl;
+            cout<<"ContigData is empty. exiting..."<<endl;
             return 0;
         }
 
