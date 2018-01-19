@@ -116,7 +116,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     splitinputfile_t inbeds;
     
     //Were we passed individual bedgraph nuggets?
-    if(w->readFileSplit)
+    if(p->readFileSplit)
     {
         //Determine which value is which:
         if(BedGraphFile=="" && SecondBedGraphFile!="")
@@ -163,9 +163,11 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             return 0;
         }
     }
-
-    //First determine if the input bedgraph has negative values:
-    inbeds=splitBedgraphFile(BedGraphFile);
+    
+    else
+    {
+        inbeds=splitBedgraphFile(BedGraphFile);
+    }
 
     cout<<"Input bed file split? "<<inbeds.wasSplit<<endl;
 

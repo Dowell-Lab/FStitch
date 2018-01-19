@@ -237,6 +237,9 @@ bool checkBedsConsistency(string goldStandard, string checkFile)
     {
         if(goldStandardLines[i]!=checkFileLines[i])
         {
+            printf("Inconsistency found on line %d.\n", i+1);
+            printf("Gold standard line: %s\n", goldStandardLines[i].c_str());
+            printf("Check file line: %s\n", checkFileLines[i].c_str());
             return false;
         }
     }
@@ -334,21 +337,33 @@ int main(int argc, char **argv)
     w->specialFileName="tout_splitbed.out";
     run_main_segment_pwrapper(w);
     
-    printf("\nSegmenting with inputs generated with only positive points on input histogram...\n");
-    w->outFileName="tout_posbed.bed";
-    w->specialFileName="tout_posbed.bed";
-    run_main_segment_pwrapper(w);
+    //printf("\nSegmenting with inputs generated with only positive points on input histogram...\n");
+    //w->outFileName="tout_posbed.bed";
+    //w->specialFileName="tout_posbed.bed";
+    //run_main_segment_pwrapper(w);
     
     printf("\nSegmenting with reference inputs given split histogram.\n");
     w->outFileName="tout_splithist.bed";
-    w->specialFileName="tout_ref.bed";
+    w->specialFileName="tout_ref.out";
     w->readFileSplit=true;
     w->readFileName=splitBed->a;
     w->secondReadFileName=splitBed->b;
     run_main_segment_pwrapper(w);
     
     //Now that we have output files, we need to ensure that they're all consistent:
-    
+    printf("\nDetermining if all segmentation output files are consistent given the same training inputs...\n");
+    printf("tout_ref.pos.bed vs tout_onoffsplit.pos.bed.....");
+    checkBedsConsistency("tout_ref.pos.bed", "tout_onoffsplit.pos.bed") ? printf("PASS\n") : printf("FAIL\n");
+    printf("tout_ref.neg.bed vs tout_onoffsplit.neg.bed.....");
+    checkBedsConsistency("tout_ref.neg.bed", "tout_onoffsplit.neg.bed") ? printf("PASS\n") : printf("FAIL\n");
+    printf("tout_ref.pos.bed vs tout_splitbed.pos.bed.......");
+    checkBedsConsistency("tout_ref.pos.bed", "tout_splitbed.pos.bed") ? printf("PASS\n") : printf("FAIL\n");
+    printf("tout_ref.neg.bed vs tout_splitbed.neg.bed........");
+    checkBedsConsistency("tout_ref.neg.bed", "tout_splitbed.neg.bed") ? printf("PASS\n") : printf("FAIL\n");
+    printf("tout_ref.pos.bed vs tout_splithist.pos.bed.......");
+    checkBedsConsistency("tout_ref.pos.bed", "tout_splithist.pos.bed") ? printf("PASS\n") : printf("FAIL\n");
+    printf("tout_ref.neg.bed vs tout_splithist.neg.bed.......");
+    checkBedsConsistency("tout_ref.neg.bed", "tout_splithist.neg.bed") ? printf("PASS\n") : printf("FAIL\n");
     
     cleanupSplitOutput(splitTraining);
     cleanupSplitOutput(splitBed);
