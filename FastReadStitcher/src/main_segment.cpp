@@ -175,7 +175,9 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     //In this case, we need to segment twice:
     if(inbeds.wasSplit)
     {
-        vector<string> outFileToks=splitter(outFile, ".");
+        vector<string> outFilePathToks=splitter(outFile, "/");
+        vector<string> outFileToks=splitter(outFilePathToks[outFilePathToks.size()-1, ".");
+        
 
         map<string,contig *> ContigData = readBedGraphFileAll(inbeds.in1, num_proc);
         if (ContigData.empty()){
@@ -204,6 +206,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             cout<<"Writing positive to IGV                      : ";
             cout<<flush;
         }
+        
         writeViterbiPaths(outFileToks[0]+".pos.bed", results, refFile, strand, RTOF_params.commandLine, commandLine);
         if (verbose){
             cout<<"done"<<endl;
