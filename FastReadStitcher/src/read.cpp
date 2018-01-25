@@ -311,7 +311,7 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                         if (not isNum(lineArray[1]) or not  isNum(lineArray[2]) or not isNum(lineArray[3], strand) ){
                             cout<<endl;
                             cout<<"Line: "<<line<<endl;
-                            cout<<"could not convert coordinates or coverage value to number"<<endl;
+                            cout<<"could not convert coordinates or coverage value to number given strand "<<strand<<endl;
                             CO.EXIT=true;
                             return CO;
                         }

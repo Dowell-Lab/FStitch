@@ -17,9 +17,11 @@ bool isNum(string num){
 }
 
 bool isNum(string num, int strand)
-{
-    int val;
-    val=strtol(num.c_str(), NULL, 10);
+{ 
+    //So we're totally not ambiguous at all:
+    long val;
+    //strtol doesn't work with scientific notation. This is just great...
+    val=(long) strtod(num.c_str(), NULL);//strtol(num.c_str(), NULL, 10);
     
     if(errno==EINVAL||errno==ERANGE)
     {
