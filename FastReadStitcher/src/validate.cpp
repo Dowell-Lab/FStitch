@@ -11,7 +11,7 @@ bool isNum(string num){
     long val;
     
     val=(long) strtod(num.c_str(), NULL);
-    if(errono==EINVAL||errno==ERANGE)
+    if(errno==EINVAL||errno==ERANGE)
     {
         return false;
     }
