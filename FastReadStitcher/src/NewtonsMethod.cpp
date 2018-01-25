@@ -391,12 +391,16 @@ vector<double> NewtonsMethod(vector< vector<double> > X, vector<int> Y, bool ver
 		for (int h =0; h < H.size(); h++ ){
 			for (int o =0; o < H.size(); o++ ){
 				if (H[h][o]!=H[h][o]){
-					cout<<"Logistic Regression Blew Up...Did not converge..."<<endl;
+					cout<<"Logistic Regression Blew Up...Did not converge on h="<<h<<", o="<<o<<"..."<<endl;
+                                        cout<<"Value causing failure: "<<H[h][o];
 					cout<<"Final Parameter Set...."<<endl;
 					for (int i=0; i < W.size(); i++){
 						cout<<to_string(W[i]).substr(0,10)<<"\t";
 					}
 					cout<<endl;
+                                        
+                                        //Throw an exception so that we can properly respond to this.
+                                        throw 1;
 					return W;
 				}
 			}
@@ -455,15 +459,7 @@ vector<double> NewtonsMethod(vector< vector<double> > X, vector<int> Y, bool ver
 
 }
 
-
-
-
-
-
-
-
 vector<double> learn(vector< vector<double> > X, vector<int> Y, bool verbose, double alpha){
-
 	vector<double> W 	= NewtonsMethod(X,Y, verbose,alpha);
 
 	return W;

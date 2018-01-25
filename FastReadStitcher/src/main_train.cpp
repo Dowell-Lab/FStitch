@@ -143,7 +143,15 @@ int run_main_train_pwrapper(ParamWrapper *p)
     }
     //=================================================================
     //NEWTONS METHOD
-    vector<double> W 							= learn(RO.X, RO.Y, 0, learning_rate);
+    vector<double> W;
+    try
+    {
+        W = learn(RO.X, RO.Y, 0, learning_rate);
+    } catch(int excep)
+    {
+        cout<<"Error: regression failed. Exiting...";
+        return 0;
+    }
     if (verbose){
         cout<<"done\n";
         cout<<"Parameter estimation, Baum-Welch          : ";
