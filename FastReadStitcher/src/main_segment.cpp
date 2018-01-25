@@ -54,10 +54,13 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     {
         if (isPos(BedGraphFile)){
             strand = "+";
+            cout<<"Input bedgraph file determined to be positive."<<endl;
         }else if(isNeg(BedGraphFile)){
             strand = "-";
+            cout<<"Input bedgraph file determined to be negative."<<endl;
         }else{
             strand = ".";
+            cout<<"Input bedgraph file determined to be both positive and negative."<<endl;
         }
     }
 
@@ -78,6 +81,8 @@ int run_main_segment_pwrapper(ParamWrapper *p)
 
     int num_proc = p->numProcs;
 
+    //This should be removed:
+    /*
     if (strand.empty()){
         if (isPos(BedGraphFile)){
             strand = "+";
@@ -86,7 +91,8 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         }else{
             strand = ".";
         }
-    }
+    }*/
+    //
     bool verbose=p->verbose;
     //=================================================================
     //Read in FStich Training out file
@@ -118,6 +124,11 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     //Were we passed individual bedgraph nuggets?
     if(p->readFileSplit)
     {
+        if(verbose)
+        {
+            cout<<"ParamWrapper reports that input reads file was split."<<endl;
+        }
+        
         //Determine which value is which:
         if(BedGraphFile=="" && SecondBedGraphFile!="")
         {
@@ -163,11 +174,28 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             cerr<<"Error: No viable histogram bedgraph file specified. Exiting..."<<endl;
             return 0;
         }
+        
+        if(verbose)
+        {
+            cout<<"Passed positive split file name: "<<inbeds.in1<<endl;
+            cout<<"Passed negative split file name: "<<inbeds.in2<<endl;
+        }
     }
     
     else
     {
+        if(verbose)
+        {
+            cout<<"Splitting input bed file."<<endl;
+        }
+        
         inbeds=splitBedgraphFile(BedGraphFile);
+        
+        if(verbose)
+        {
+            cout<<"Positive split file name: "<<inbeds.in1<<endl;
+            cout<<"Negative split file name: "<<inbeds.in2<<endl;
+        }
     }
 
     cout<<"Input bed file split? "<<inbeds.wasSplit<<endl;
@@ -251,14 +279,23 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             cout<<"done"<<endl;
         }
 
-        remove(inbeds.in1ch);
-        remove(inbeds.in2ch);
+        //Only delete the files if they were either generated here or we don't want debugging information.
+        if(!verbose && inbeds.splitGenerated)
+        {
+            remove(inbeds.in1ch);
+            remove(inbeds.in2ch);
+        }
+        
+        else
+        {
+            cout<<"All temporary files mentioned previously have been preserved. Delete them manually if necessary."<<endl;
+        }
     }
 
     //Otherwise, we just need to segment once:
     else
     {
-        map<string,contig *> ContigData 	= readBedGraphFileAll(inbeds.in1,num_proc);
+        map<string,contig *> ContigData 	= readBedGraphFileAll(BedGraphFile,num_proc);
         if (ContigData.empty()){
             cout<<"exiting..."<<endl;
             return 0;
@@ -291,7 +328,15 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         }
 
         //Now delete the input files:
-        remove(inbeds.in1ch);
+        if(!verbose && inbeds.splitGenerated)
+        {
+            remove(inbeds.in1ch);
+        }
+        
+        else
+        {
+            cout<<"All temporary files mentioned previously have been preserved. Delete them manually if necessary."<<endl;
+        }
     }
 
     return 1;

@@ -56,6 +56,8 @@ typedef struct
     char in1ch[80];
     string in2;
     char in2ch[80];
+    
+    bool splitGenerated=false;
 
     bool wasSplit=false;
 } splitinputfile_t;

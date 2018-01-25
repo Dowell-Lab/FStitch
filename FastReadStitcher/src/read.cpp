@@ -32,6 +32,8 @@ splitinputfile_t splitBedgraphFile(string infilename)
     close(mkstemp(out.in1ch));
     out.in1=string(out.in1ch);
     outfile1=ofstream(out.in1);
+    
+    out.splitGenerated=true;
 
     while(getline(infile, line))
     {
