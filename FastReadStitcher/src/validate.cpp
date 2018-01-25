@@ -8,12 +8,26 @@
 using namespace std;
 
 bool isNum(string num){
+    long val;
+    
+    val=(long) strtod(num.c_str(), NULL);
+    if(errono==EINVAL||errno==ERANGE)
+    {
+        return false;
+    }
+    
+    else
+    {
+        return true;
+    }
+    
+    /*
 	for (int i=0; i < num.size(); i++){
 		if ((not isdigit(num[i])) and num.substr(i,1) != "." ){
 			return false;
 		}
 	}
-	return true;
+	return true;*/
 }
 
 bool isNum(string num, int strand)
