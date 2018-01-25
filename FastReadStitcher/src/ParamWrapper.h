@@ -11,6 +11,9 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdlib>
+
+#include "read.h"
+
 using namespace std;
 
 /* ParamWrapper.h -- Header for an updated parameter parsing and storage class.

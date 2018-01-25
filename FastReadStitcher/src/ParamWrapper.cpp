@@ -252,18 +252,37 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
         if(it->first=="-r")
         {
             this->readFileName=it->second;
+            
+            if(!fileExists(this->readFileName))
+            {
+                printf("Error: combined reads file specified by -r does not exist.\n");
+                this->exit=true;
+            }
         }
         
         else if(it->first=="-rp")
         {
             this->readFileSplit=true;
             this->readFileName=it->second;
+            
+            //Determine if the specified file exists:
+            if(!fileExists(this->readFileName))
+            {
+                printf("Error: positive reads file specified by -rp does not exist.\n");
+                this->exit=true;
+            }
         }
         
         else if(it->first=="-rn")
         {
             this->readFileSplit=true;
             this->secondReadFileName=it->second;
+            
+            if(!fileExists(this->secondReadFileName))
+            {
+                printf("Error: negative reads file specified by -rn does not exist.\n");
+                this->exit=true;
+            }
         }
         
         else if(it->first=="-cm")
@@ -356,34 +375,72 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             // This should take care of the special case in which this value is specified last.
             // It should take priority over individual splits.
             this->specialFileSplit=false;
+            
+            if(!fileExists(this->specialFileName))
+            {
+                printf("Error: training input file specified with -t does not exist.\n");
+                this->exit=true;
+            }
         }
         
         else if(it->first=="--off")
         {
             this->secondSpecialFileName=it->second;
+            this->specialFileSplit=true;
+            
+            if(!fileExists(this->specialFileName))
+            {
+                printf("Error: bed file containing off training regions specified with --off does not exist.\n");
+                this->exit=true;
+            }
         }
         
         else if(it->first=="--on")
         {
             this->specialFileName=it->second;
             this->specialFileSplit=true;
+            
+            if(!fileExists(this->specialFileName))
+            {
+                printf("Error: bed file containing on training regions specified with --on does not exist.\n");
+                this->exit=true;
+            }
         }
         
         else if(it->first=="--negtrainingfile")
         {
             this->secondSpecialFileName=it->second;
+            this->specialFileSplit=true;
+            
+            if(!fileExists(this->secondSpecialFileName))
+            {
+                printf("Error: negative training examples file specified with --negtrainingfile does not exist.\n");
+                this->exit=true;
+            }
         }
         
         else if(it->first=="--postrainingfile")
         {
             this->specialFileName=it->second;
             this->specialFileSplit=true;
+            
+            if(!fileExists(this->specialFileName))
+            {
+                printf("Error: positive training examples file specified with --postrainingfile does not exist.\n");
+                this->exit=true;
+            }
         }
         
         else if(it->first=="-w")
         {
             this->specialFileName=it->second;
             this->specialFileSplit=false;
+            
+            if(!fileExists(this->specialFileName))
+            {
+                printf("Error: training weights file specified with -w does not exist.\n");
+                this->exit=true;
+            }
         }
     }
     
