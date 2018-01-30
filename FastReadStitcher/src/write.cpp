@@ -149,6 +149,8 @@ void writeViterbiPaths(string OUT, map<string, state*> results, string refFile, 
 					if (prevState=="ON" and C){
 						prevStop 	= C->start;
 					}
+					
+					cout<<"In WriteViterbiPaths. C: "<<C<<" prevStart: "<<prevStart<<" prevStop: "<<prevStop<<" currProb: " <<currProb<<" N: "<<N<<endl;
 					FHW<<C->chrom<<"\t"<<to_string(prevStart)<<"\t"<<to_string(prevStop)<<"\t"<<prevState<<"="<<to_string(currProb/N);
 					FHW<<"\t"<<score<<"\t"<<strand<<"\t"<<to_string(prevStart)<<"\t"<<to_string(prevStop)<<"\t"<<RGB<<"\t"<<genes<<endl;
 					currProb=0;
