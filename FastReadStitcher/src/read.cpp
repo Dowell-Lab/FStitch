@@ -126,7 +126,9 @@ vector<double> contig::getVect(bool ChIP){
 	if (not ChIP){
 		x.push_back(1);
 		x.push_back(log((left+right)/2));
-		x.push_back(log(length));
+        //It appears that length is not set as it should be:
+        x.push_back(log(right-left+1));
+		//x.push_back(log(length));
 		x.push_back(log(cov/ (left+right+length)));
 	}else{
 		x.push_back(1);

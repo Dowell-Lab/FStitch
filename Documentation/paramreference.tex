@@ -5,24 +5,24 @@
 
 \title{Parameter Reference for FStitch}
 \author{Michael Gohde}
-\date{December 6, 2017}
+\date{February 6, 2018}
 \maketitle
 
 \abstract{FStitch is a tool that learns and generates annotations for regions of transcription on GRO or ChIP-seq data. 
-          This document exists to provide a quick reference on how to invoke and properly use the new interface for FStitch.}
+          This document exists to provide a quick reference on how to invoke and properly use the latest revision of FStitch.}
 
 \section{Training Parameters}
 
 In order to train a new model, FStitch needs, at minimum, the following information:
 \begin{enumerate}
  \item \textit{A training input file.} FStitch needs to learn how to segment an input dataset by analyzing existing segments and regions of interest.
- \item \textit{A BedGraph file.} FStitch needs an input dataset to be able to make inferences about what each labeled region represents.
+ \item \textit{A reads histogram BedGraph file.} FStitch needs an input dataset to be able to make inferences about what each labeled region represents.
  \item \textit{An output file.} Once a model is generated, it needs to be stored so that FStitch can be applied to segment input data.
 \end{enumerate}
 
 Below is a table of all parameters corresponding to the above list of required information. 
 
-\begin{tabular}{| l | p{8cm} |}
+\begin{tabular}{| p{5cm} | p{8cm} |}
  \hline
  \textbf{Parameter} & \textbf{Description}\\
  \hline
@@ -30,19 +30,19 @@ Below is a table of all parameters corresponding to the above list of required i
  \hline
  -o \textit{output file} & This parameter allows the user to specify a training output file.\\
  \hline
- -a \textit{Annotation file name} & This parameter allows the user to specify a training input file.\\
+ -t \textit{training input file name} & This parameter allows the user to specify a training input file.\\
  \hline
 \end{tabular}
 
-There are a number of additional parameters that present options relating to how the input data is to be specified and processed:
+There are a number of additional parameters that present options related to how the input data is to be specified and processed:
 
-\begin{tabular}{| p{6cm} | p{8cm} |}
+\begin{tabular}{| p{5cm} | p{8cm} |}
  \hline
  \textbf{Parameter} & \textbf{Description}\\
  \hline
- \multirow{2}{8cm}{--posfile \textit{positive strand data} \\--negfile \textit{negative strand data} } & These options can be used in place of the -r parameter to allow the user to split the input dataset into positive and negative strand data.\\
+ \multirow{2}{8cm}{-rp \textit{positive strand data} \\-rn \textit{negative strand data} } & These options can be used in place of the -r parameter to allow the user to split the input reads histrogram into positive and negative histograms.\\
  \hline
- \multirow{2}{8cm}{--onfile \textit{on training examples}\\--offfile \textit{off training examples}} & These options can be used in place of the -a parameter to allow the user to split the input training file into on and off regions.\\
+ \multirow{2}{8cm}{--on \textit{on training examples}\\--off \textit{off training examples}} & These options can be used in place of the -t parameter to allow the user to split the input training file into on and off regions.\\
  \hline
  -chip & This parameter allows the user to use ChIP-seq (Chromatin ImmunoPrecipitation sequencing) input data instead of the default GRO-seq (Genomic Run-On sequencing).\\
  \hline
@@ -50,7 +50,7 @@ There are a number of additional parameters that present options relating to how
 
 The training process itself can be altered through the use of input parameters. Below is a table of such parameters and their default values.
 
-\begin{tabular}{| l | p{2cm} | p{6cm} |}
+\begin{tabular}{| p{3cm} | p{2cm} | p{8cm} |}
  \hline
  \textbf{Parameter} & \textbf{Default value} & \textbf{Description} \\
  \hline
@@ -73,13 +73,13 @@ The training process itself can be altered through the use of input parameters. 
 In order to segment an input dataset based on a trained model, FStitch needs, at minimum, the following information:
 \begin{enumerate}
  \item \textit{A trained model}
- \item \textit{An input dataset}
+ \item \textit{An input histogram file}
  \item \textit{An output file}
 \end{enumerate}
 
 Below is a table of all parameters corresponding to the above list of required information:
 
-\begin{tabular}{| l | p{8cm} |}
+\begin{tabular}{| p{5cm} | p{8cm} |}
  \hline
  \textbf{Parameter} & \textbf{Description}\\
  \hline
@@ -93,13 +93,15 @@ Below is a table of all parameters corresponding to the above list of required i
 
 There are a few additional parameters that present options relating to how input and output data are to be processed:
 
-\begin{tabular}{| l | p{8cm} |}
+\begin{tabular}{| p{5cm} | p{8cm} |}
  \hline
  \textbf{Parameter} & \textbf{Description}\\
  \hline
  --report \textit{`on' or `off' or `both'} & Whether to only report ``on'' regions, ``off'' regions, or both ``on'' and ``off'' regions.\\
  \hline
  --strand \textit{`+' or `-' or `both'} & Which strand to attempt to train on (if applicable).\\
+ \hline
+ \multirow{2}{8cm}{-rp \textit{positive strand data} \\-rn \textit{negative strand data} } & These options can be used in place of the -r parameter to allow the user to split the input reads histrogram into positive and negative histograms.\\
  \hline
 \end{tabular}
 
@@ -113,7 +115,7 @@ There are two classes of common parameters:
 
 The following table documents the first class of common parameters:
 
-\begin{tabular}{| l | p{8cm} |}
+\begin{tabular}{| p{5cm} | p{8cm} |}
  \hline
  \textbf{Parameter} & \textbf{Description}\\
  \hline
@@ -125,7 +127,7 @@ The following table documents the first class of common parameters:
 
 The following table documents the second class of common parameters:
 
-\begin{tabular} {| l | p{8cm} |}
+\begin{tabular} {| p{5cm} | p{8cm} |}
  \hline
  \textbf{Parameter} & \textbf{Description}\\
  \hline
