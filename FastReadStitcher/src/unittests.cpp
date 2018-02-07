@@ -230,7 +230,7 @@ bool checkBedsConsistency(string goldStandard, string checkFile)
     
     if(goldStandardLines.size()!=checkFileLines.size() && false)
     {
-        printf("Inconsistent number of lines: %d vs %d.\n", goldStandardLines.size(), checkFileLines.size());
+        printf("Inconsistent number of lines: %lu vs %lu.\n", goldStandardLines.size(), checkFileLines.size());
         return false;
     }
     

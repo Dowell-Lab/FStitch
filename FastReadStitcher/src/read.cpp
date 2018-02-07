@@ -121,13 +121,15 @@ void contig::setStats(int st, int sp, double l, double r, double len, float C, s
 void contig::display(){
 	cout<<chrom<<":"<<start<<"-"<<stop<<endl;
 }
+
 vector<double> contig::getVect(bool ChIP){
 	vector<double> x;
 	if (not ChIP){
 		x.push_back(1);
 		x.push_back(log((left+right)/2));
         //It appears that length is not set as it should be:
-        x.push_back(log(right-left+1));
+        this->length=(right-left+1);
+        x.push_back(log(length));
 		//x.push_back(log(length));
 		x.push_back(log(cov/ (left+right+length)));
 	}else{

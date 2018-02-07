@@ -89,8 +89,7 @@ void ParamWrapper::printUsage()
     printf("                        containing the histogram of negative reads as a BED4 file.\n");
     printf("                        This parameter must be used in conjunction with -rp\n");
     printf("                        regardless of the strand used for training.\n");
-    printf(" -o <file>              This specifies the output annotation file.\n");
-    printf("");
+    printf(" -o <file>              This specifies the output annotation file.\n\n");
 }
 
 void ParamWrapper::dumpValues()
