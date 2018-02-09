@@ -21,6 +21,7 @@ public:
 	void display();
 	vector<double> getVect(bool);
         int strand;
+    bool modified;
 };
 class interval{
 public:

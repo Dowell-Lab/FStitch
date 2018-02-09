@@ -278,7 +278,7 @@ int main(int argc, char **argv)
     w->specialFileName=trainfile;
     
     w->dumpValues();
-    /*
+    
     run_main_train_pwrapper(w);
     
     
@@ -316,7 +316,7 @@ int main(int argc, char **argv)
     checkWeightsConsistency("tout_ref.out", "tout_splitbed.out", ACCEPTABLE_MARGIN) ? printf("PASS\n") : printf("FAIL\n");
     printf("tout_ref.out vs tout_bothsplit.out..........");
     checkWeightsConsistency("tout_ref.out", "tout_bothsplit.out", ACCEPTABLE_MARGIN) ? printf("PASS\n") : printf("FAIL\n");
-    */
+    
     //Now perform segmentation tasks:
     
     printf("\nSegmenting with reference inputs...\n");

@@ -108,7 +108,7 @@ file_stats getFHstats(string FILE){
 	FH.close();
 	return file_stats(start_stop, relate);
 }
-contig::contig(){}
+contig::contig(){ this->modified=false; }
 void contig::setStats(int st, int sp, double l, double r, double len, float C, string CHROM){
 	start 	= st;
 	stop 	= sp;
@@ -117,6 +117,7 @@ void contig::setStats(int st, int sp, double l, double r, double len, float C, s
 	cov 	= C ;
 	length 	= len;
 	chrom 	= CHROM;
+    this->modified=true;
 }
 void contig::display(){
 	cout<<chrom<<":"<<start<<"-"<<stop<<endl;
@@ -125,13 +126,23 @@ void contig::display(){
 vector<double> contig::getVect(bool ChIP){
 	vector<double> x;
 	if (not ChIP){
-		x.push_back(1);
-		x.push_back(log((left+right)/2));
-        //It appears that length is not set as it should be:
-        this->length=(right-left+1);
-        x.push_back(log(length));
+        //x.push_back(1);
+		//x.push_back(log((left+right)/2));
 		//x.push_back(log(length));
-		x.push_back(log(cov/ (left+right+length)));
+		//x.push_back(log(cov/ (left+right+length)));
+        
+        /*
+        if((right+left)/2<=0 || (stop-start+1)<=0 || cov/(stop-start+1)<=0)
+        {
+            cout<<"Warning: some permutation of values in contig would produce a zero or negative output. l: "<<start<<" r: "<<stop<<" c: "<<cov<<endl;
+        }*/
+        x.push_back(1);
+        x.push_back((start+stop)/2);
+        x.push_back((stop-start+1));
+        x.push_back(cov/(stop-start+1));
+        //x.push_back((right+left)/2);
+        //x.push_back((right-left+1));
+        //x.push_back(cov/(right-left+1));
 	}else{
 		x.push_back(1);
 		x.push_back(cov / (length+ ((left+right)/2) ));
@@ -175,6 +186,7 @@ contigOut makeContig(string FILE, int start, int stop){
                     cout<<"couldn't parse line: "+line+"\n";
                     cout<<"number of tokens found in given line: "<<lineArray.size()<<endl;
                     CO.EXIT=true;
+                    CO.result=NULL;
                     return CO;
 		}else{
                     //cout<<line<<endl;
@@ -221,6 +233,7 @@ contigOut makeContig(string FILE, int start, int stop){
                         cout<<"Line: "<<line<<endl;
                         cout<<"could not convert coordinates or coverage value to number"<<endl;
                         CO.EXIT=true;
+                        CO.result=NULL;
                         return CO;
                     }
 
@@ -269,13 +282,16 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
         int prevStart= 0;
         int prevStop = 0;
         int p = 0;
+        int i;
         double l = 0;
         double r = 0;
         bool begin=1;
         contig * C;
+        contig *c;
         C               = new contig;
+        //C->setStats(0, 0, 0, 0, 0, 0, "");
         contig * root   = C;
-        float coverage  = 0;
+        double coverage  = 0;
         //int strand=CONTIG_STRAND_POS;
 
         while (FH.tellg()<stop){
@@ -314,22 +330,26 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                     {
                         //cout<<"Added values for line "<<line<<endl;
                         //strand=CONTIG_STRAND_POS;
-                        if (not isNum(lineArray[1]) or not  isNum(lineArray[2]) or not isNum(lineArray[3], strand) ){
+                        if (not isNum(lineArray[1]) or not  isNum(lineArray[2])){
                             cout<<endl;
                             cout<<"Line: "<<line<<endl;
                             cout<<"could not convert coordinates or coverage value to number given strand "<<strand<<endl;
                             CO.EXIT=true;
+                            CO.result=NULL;
                             return CO;
                         }
 
                         sp          = stoi(lineArray[2]); //Stop
                         st          = stoi(lineArray[1]); //Start
                         cov         = stof(lineArray[3]); //Coverage? Waaait.
+                        
+                        coverage+=cov;
                         if(strand)
                         {
                             //If we're negative, then invert the value so fstitch doesn't break.
                             cov*=-1.;
                         }
+                        
                         if (begin){
                             begin           = 0;
                             prevStop        = sp;
@@ -337,6 +357,7 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                             prevStart       = 0;
                         }else if(not begin and (st-p)>2 ){
                             r                       = st - p;
+                            //Start, stop, left, right, coverage, length, chromosome.
                             C->setStats(prevStart-l,p+r, l, r, p-prevStart, coverage, chrom);
                             C->next         = new contig;
                             C                       = C->next;
@@ -347,7 +368,14 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                         }
 
                         p           = sp;
-                        coverage+=cov;
+                        //coverage+=cov;
+                    }
+                    
+                    //It's clear that not having behavior here is a problem:
+                    else
+                    {
+                        //cout<<"Found line not matching strand."<<endl;
+                        //coverage=0;
                     }
             }
             
@@ -358,6 +386,25 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
         FH.close();
         CO.EXIT         = false;
         CO.result       = root;
+        /*
+        c=root;
+        while(c!=NULL)
+        {
+            if(!c->modified)
+            {
+                cout<<"Found unmodified contig. Start: "<<c->start<<" Stop: "<<c->stop<<endl;
+                c->start=0;
+                c->stop=0;
+                c->cov=0;
+            }
+            
+            else
+            {
+                cout<<"Contig fm "<<c->start<<" to "<<c->stop<<" cov "<<c->cov<<endl; 
+            }
+            
+            c=c->next;
+        }*/
         return CO;
 }
 
