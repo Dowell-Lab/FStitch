@@ -52,6 +52,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
 
     if(p->strand==STRAND_UNSPECIFIED)
     {
+        cout<<"NOTE: segmented strand not specified. Attempting to determine strand from reads histogram file..."<<endl;
         if (isPos(BedGraphFile)){
             strand = "+";
             cout<<"Input bedgraph file determined to be positive."<<endl;

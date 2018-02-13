@@ -112,7 +112,7 @@ void ParamWrapper::dumpValues()
 ParamWrapper::ParamWrapper()
 {
     this->commandLine="UNIT TEST FILE";
-    this->strand=STRAND_POSITIVE;
+    this->strand=STRAND_UNSPECIFIED;//STRAND_POSITIVE;
     this->report=REPORT_ON;
     this->exit=false;
     this->train=false;
