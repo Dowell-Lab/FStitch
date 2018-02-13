@@ -868,6 +868,42 @@ map<string,contig *> readBedGraphFileAll(string FILE,int np){
 	return D;
 }
 
+//This follows the conventions for strand established in main_segment:
+//"+" for pos strand, "-" for neg strand, and "." for both (unsupported).
+map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string strand)
+{
+    int str;
+    
+    str==(strand!="+");
+    
+    omp_set_dynamic(0);     // Explicitly disable dynamic teams
+	omp_set_num_threads(np); // Use 4 threads for all consecutive parallel regions
+	
+	file_stats fs 					= getFHstats(FILE);
+	vector<int> start_stop 			= fs.start_stop;
+	map<int,string> relate 			= fs.relate;
+	map<string,contig *> 	D;
+	vector<contig *> M(start_stop.size());
+	bool abort = false;
+	#pragma omp parallel for
+	for(int n=1; n<start_stop.size(); ++n)
+	{
+		#pragma omp flush (abort)
+		contigOut CO 	= makeContigStrand(FILE, start_stop[n-1], start_stop[n], str);//makeContig(FILE, start_stop[n-1],start_stop[n]);
+		if (CO.EXIT){
+			D.clear();
+			abort = true;
+		}
+		M[n-1] 			= CO.result;
+		D[relate[n-1]] 	= M[n-1];
+		
+	}
+	if (abort){
+		D.clear();
+	}
+	return D;
+}
+
 
 map<string, map<string, interval *>> readRefSeq(string FILE){
 	map<string, map<string, interval *>> R;	

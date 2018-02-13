@@ -190,12 +190,27 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             cout<<"Splitting input bed file."<<endl;
         }
         
-        inbeds=splitBedgraphFile(BedGraphFile);
-        
-        if(verbose)
+        //It may be the case that the input bedgraph was improperly specified.
+        //isPos and isNeg should've made this determination earlier:
+        if(strand=="+" || strand=="-")
         {
-            cout<<"Positive split file name: "<<inbeds.in1<<endl;
-            cout<<"Negative split file name: "<<inbeds.in2<<endl;
+            inbeds.wasSplit=false;
+            
+            if(verbose)
+            {
+                cout<<"Histogram file contains only histograms for one strand."<<endl;
+            }
+        }
+        
+        else
+        {
+            inbeds=splitBedgraphFile(BedGraphFile);
+            
+            if(verbose)
+            {
+                cout<<"Positive split file name: "<<inbeds.in1<<endl;
+                cout<<"Negative split file name: "<<inbeds.in2<<endl;
+            }
         }
     }
 
@@ -213,7 +228,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         
         vector<string> outFileToks=splitter(outFilePathToks[outFilePathToks.size()-1], ".");
 
-        map<string,contig *> ContigData = readBedGraphFileAll(inbeds.in1, num_proc);
+        map<string,contig *> ContigData = readBedGraphFileAllGivenStrand(inbeds.in1, num_proc, "+");
         if (ContigData.empty()){
             cout<<"ContigData is empty. exiting..."<<endl;
             return 0;
@@ -246,7 +261,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             cout<<"done"<<endl;
         }
 
-        ContigData 	= readBedGraphFileAll(inbeds.in2, num_proc);
+        ContigData 	= readBedGraphFileAllGivenStrand(inbeds.in2, num_proc, "-");
         if (ContigData.empty()){
             cout<<"exiting..."<<endl;
             return 0;
@@ -296,7 +311,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     //Otherwise, we just need to segment once:
     else
     {
-        map<string,contig *> ContigData 	= readBedGraphFileAll(BedGraphFile,num_proc);
+        map<string,contig *> ContigData 	= readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand);//readBedGraphFileAll(BedGraphFile,num_proc);
         if (ContigData.empty()){
             cout<<"exiting..."<<endl;
             return 0;

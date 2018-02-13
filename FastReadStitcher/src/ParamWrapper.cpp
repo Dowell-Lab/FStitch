@@ -151,7 +151,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     
     // Set default parameters:
     //Changed to STRAND_POSITIVE to work around bugs in contig generation.
-    this->strand=STRAND_POSITIVE; //STRAND_UNSPECIFIED;
+    this->strand=STRAND_UNSPECIFIED;
     //this->strand=STRAND_BOTH;
     this->report=REPORT_ON;
     this->exit=false;
