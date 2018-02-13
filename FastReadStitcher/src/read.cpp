@@ -874,7 +874,7 @@ map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string
 {
     int str;
     
-    str==(strand!="+");
+    str=(strand!="+");
     
     omp_set_dynamic(0);     // Explicitly disable dynamic teams
 	omp_set_num_threads(np); // Use 4 threads for all consecutive parallel regions
