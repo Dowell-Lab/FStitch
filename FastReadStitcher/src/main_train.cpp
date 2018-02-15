@@ -208,7 +208,8 @@ int run_main_train_pwrapper(ParamWrapper *p)
     vector<double> W;
     try
     {
-        W = learn(RO.X, RO.Y, 0, learning_rate);
+        //W = learn(RO.X, RO.Y, 0, learning_rate);
+        W=ParameterizedNewtonsMethod(RO.X, RO.Y, 0, learning_rate, p->maxConvergenceIters, convergence_threshold);
     } catch(int excep)
     {
         cout<<"Error: regression failed. Exiting...";

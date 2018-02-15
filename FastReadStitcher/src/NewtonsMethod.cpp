@@ -459,6 +459,111 @@ vector<double> NewtonsMethod(vector< vector<double> > X, vector<int> Y, bool ver
 
 }
 
+vector<double> ParameterizedNewtonsMethod(vector< vector<double> > X, vector<int> Y, bool verbose, double alpha, int numIters, double thresh){
+	vector<double> W;
+	for (int i = 0; i < X[0].size(); i++){
+		W.push_back(0.0); 	//Initialize Starting Weights to Zero
+	}
+	vector< vector<double> > reg = identity(X[0].size());
+
+
+
+	//========================================================================
+	//	Initialize some important data structures...basically a bunch of
+	//	vectors of vectors to replicate matrices and vectors
+	//	The below loop runs for a fixed number of iterations or stops when the
+	//	loglikelihood converges
+	//========================================================================
+
+	vector<vector<double> > H;
+	vector<vector<double> > INV_H;
+	vector<vector<double> > G;
+	vector<vector<double> > current_gradient;
+
+	int T							= numIters;
+	int t							= 0;
+	double LL 						= 0;
+	double previous					= 0;
+	double *ptr 					= &previous;
+	double convergence_threshold 	= thresh; //1.0 / 1000000;
+	double prev_T					= 0;
+	vector<double> P_W(W.size());
+	vector<double> gamma(W.size());
+	int ct=0;
+	while (t < T){
+
+		G 					= gradient(X,Y,W);
+
+		H 					= hessian(X,Y,W);
+		for (int h =0; h < H.size(); h++ ){
+			for (int o =0; o < H.size(); o++ ){
+				if (H[h][o]!=H[h][o]){
+					cout<<"Logistic Regression Blew Up...Did not converge on h="<<h<<", o="<<o<<"..."<<endl;
+                                        cout<<"Value causing failure: "<<H[h][o];
+					cout<<"Final Parameter Set...."<<endl;
+					for (int i=0; i < W.size(); i++){
+						cout<<to_string(W[i]).substr(0,10)<<"\t";
+					}
+					cout<<endl;
+                                        
+                                        //Throw an exception so that we can properly respond to this.
+                                        throw 1;
+					return W;
+				}
+			}
+		}
+		INV_H 				= inv(H);
+		current_gradient	= transpose(matrix_mult(INV_H, transpose(G)));
+		gamma				= sub(W,current_gradient[0]);
+		W 					= add(mult(W, 1-alpha), mult(gamma, alpha) );
+
+		LL 					= loglikelihood(X,Y,W);
+		if (verbose){
+			cout<<"...Learning..."<<flush;
+			if (ct > 3){
+				cout<<endl;
+				ct=0;
+			}
+
+//			for (int i=0; i < W.size(); i++){
+//				cout<<to_string(W[i]).substr(0,10)<<"\t";
+//			}
+//			cout<<endl;
+		}
+		ct++;
+		t++;
+		if(ptr != NULL && abs(difference(W,P_W)) < convergence_threshold){
+			if (verbose){
+
+
+
+				cout<<"\n...Newton's Method converged in "<<t<<" iterations"<<endl;
+				cout<<"...Learned Logistic Regression Parameters: ";
+				for (int i=0; i < W.size(); i++){
+					cout<<to_string(W[i]).substr(0,10)<<"\t";
+				}
+
+				cout<<endl;
+			}
+			return W;
+		}
+		*ptr = LL;
+		P_W 	= W;
+		if (( t / (double)T ) > (prev_T+0.25) and verbose){
+			prev_T 	= t / (double)T;
+		}
+	}
+	cout<<"Warning: Learning Algorithm did not converge..."<<endl;
+	cout<<"Consider increasing number of iterations or lowering convergence threshold..."<<endl;
+	cout<<"Learned Logistic Regression Parameters: ";
+	for (int i=0; i < W.size(); i++){
+		cout<<W[i]<<"\t";
+	}
+	cout<<endl;
+
+	return W;
+}
+
 vector<double> learn(vector< vector<double> > X, vector<int> Y, bool verbose, double alpha){
 	vector<double> W 	= NewtonsMethod(X,Y, verbose,alpha);
 
