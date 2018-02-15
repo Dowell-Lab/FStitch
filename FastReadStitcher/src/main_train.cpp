@@ -31,6 +31,8 @@ int run_main_train_pwrapper(ParamWrapper *p)
     double convergence_threshold = p->convergenceThreshold;
     double learning_rate = p->learningRate;
     int maxSeed = p->maxSeed;
+    string strand;
+    int determinedStrand;
 
     //=================================================================
     // Misc Parameters
@@ -45,18 +47,63 @@ int run_main_train_pwrapper(ParamWrapper *p)
     //READ TRAINING FILE
     readTrainingFileReturn TrainReturn;
     
-    if(p->strand==STRAND_BOTH)
+    if(p->strand==STRAND_UNSPECIFIED)
     {
-    }
-    
-    else if(p->strand==STRAND_POSITIVE)
-    {
-    }
-    
-    else if(p->strand==STRAND_NEGATIVE)
-    {
+        cout<<"NOTE: segmented strand not specified. Attempting to determine strand from reads histogram file..."<<endl;
+        if (isPos(BedGraphFile)){
+            strand = "+";
+            cout<<"Input bedgraph file determined to be positive based on file name."<<endl;
+        }else if(isNeg(BedGraphFile)){
+            strand = "-";
+            cout<<"Input bedgraph file determined to be negative based on file name"<<endl;
+        }else{
+            /* Attempt to determine the bed file type based on its contents: */
+            determinedStrand=checkBedFileType(BedGraphFile);
+            
+            if(determinedStrand==STRAND_POSITIVE)
+            {
+                strand="+";
+                cout<<"Input bedgraph file determined to be positive based on file contents."<<endl;
+            }
+            
+            else if(determinedStrand==STRAND_NEGATIVE)
+            {
+                strand="-";
+                cout<<"Input bedgraph file determined to be negative based on file contents."<<endl;
+            }
+            
+            else if(determinedStrand==STRAND_BOTH)
+            {
+                strand=".";
+                cout<<"Input bedgraph file determined to contain both positive and negative strand data"<<endl;
+                cout<<"based on file contents."<<endl;
+            }
+            
+            else
+            {
+                cout<<"Input bedgraph file is poorly formatted or unreadable. Exiting..."<<endl;
+                return 0;
+            }
+            strand = ".";
+            cout<<"Input bedgraph file determined to be both positive and negative."<<endl;
+        }
     }
 
+    else if(p->strand==STRAND_BOTH)
+    {
+        strand=".";
+    }
+
+    else if(p->strand==STRAND_POSITIVE)
+    {
+        strand="+";
+    }
+
+    else if(p->strand==STRAND_NEGATIVE)
+    {
+        strand="-";
+    }
+    
     if(p->specialFileSplit)
     {
         TrainReturn=readSplitTrainingFile(TrainingFile, p->secondSpecialFileName);
@@ -91,6 +138,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
     
     //This will read only positive data from the given bedgraph:
     //TODO: Implement proper support for training on both strands.
+    /*
     if(p->strand==STRAND_POSITIVE || p->strand==STRAND_BOTH)
     {
         if(BedGraphSplit)
@@ -115,7 +163,21 @@ int run_main_train_pwrapper(ParamWrapper *p)
         {
             ContigData=readBedGraphFileStrand(BedGraphFile, TrainingIntervals, 1, 1);
         }
+    }*/
+    
+    if(p->strand==STRAND_UNSPECIFIED || p->strand==STRAND_BOTH || strand==".")
+    {
+        cout<<"Warning: training strand was not specified or the input histogram file contains both positive and negative reads."<<endl;
+        cout<<"This configuration is unfortunately unsupported at this time. Unless the input histogram file contains only"<<endl;
+        cout<<"negative reads, training will be performed on positive reads."<<endl;
+        
+        strand="+";
+        
+        //TODO: Add code to split the input file if it has both types of reads.
+        //This will allow us to automatically generate multiple training output files to match strand data.
     }
+    
+    ContigData=readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand);
     
     //map<string,contig *> ContigData = readBedGraphFileStrand(BedGraphFile,TrainingIntervals,1,);
     if (ContigData.empty()){

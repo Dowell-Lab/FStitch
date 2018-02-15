@@ -10,26 +10,6 @@
 
 #include <string>
 using namespace std;
-bool isNeg(string OUT){
-	for (int i = 0; i < OUT.size(); i++){
-		for (int j = i; j < OUT.size(); j++){
-			if (OUT.substr(i,OUT.size()-j)=="neg" or OUT.substr(i,OUT.size()-j) =="-"){
-				return 1;
-			}
-		}
-	}
-	return 0;
-}
-bool isPos(string OUT){
-	for (int i = 0; i < OUT.size(); i++){
-		for (int j = i; j < OUT.size(); j++){
-			if (OUT.substr(i,OUT.size()-j)=="pos" or OUT.substr(i,OUT.size()-j) =="+"){
-				return 1;
-			}
-		}
-	}
-	return 0;
-}
 
 int run_main_segment_pwrapper(ParamWrapper *p)
 {
@@ -45,6 +25,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     //string refFile 				= PT.params["-r"];
     //This will be handled differently:
     string strand;
+    int determinedStrand;
 
     //==================================================================
     // Other Parameters
@@ -55,11 +36,38 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         cout<<"NOTE: segmented strand not specified. Attempting to determine strand from reads histogram file..."<<endl;
         if (isPos(BedGraphFile)){
             strand = "+";
-            cout<<"Input bedgraph file determined to be positive."<<endl;
+            cout<<"Input bedgraph file determined to be positive based on file name."<<endl;
         }else if(isNeg(BedGraphFile)){
             strand = "-";
-            cout<<"Input bedgraph file determined to be negative."<<endl;
+            cout<<"Input bedgraph file determined to be negative based on file name"<<endl;
         }else{
+            /* Attempt to determine the bed file type based on its contents: */
+            determinedStrand=checkBedFileType(BedGraphFile);
+            
+            if(determinedStrand==STRAND_POSITIVE)
+            {
+                strand="+";
+                cout<<"Input bedgraph file determined to be positive based on file contents."<<endl;
+            }
+            
+            else if(determinedStrand==STRAND_NEGATIVE)
+            {
+                strand="-";
+                cout<<"Input bedgraph file determined to be negative based on file contents."<<endl;
+            }
+            
+            else if(determinedStrand==STRAND_BOTH)
+            {
+                strand=".";
+                cout<<"Input bedgraph file determined to contain both positive and negative strand data"<<endl;
+                cout<<"based on file contents."<<endl;
+            }
+            
+            else
+            {
+                cout<<"Input bedgraph file is poorly formatted or unreadable. Exiting..."<<endl;
+                return 0;
+            }
             strand = ".";
             cout<<"Input bedgraph file determined to be both positive and negative."<<endl;
         }

@@ -51,3 +51,27 @@ bool isFile(string FILE){
 		return false;
 	}   
 }
+
+/* Moved from main_segment since is makes more sense for bed file detection functions to be here: */
+
+bool isNeg(string OUT){
+	for (int i = 0; i < OUT.size(); i++){
+		for (int j = i; j < OUT.size(); j++){
+			if (OUT.substr(i,OUT.size()-j)=="neg" or OUT.substr(i,OUT.size()-j) =="-"){
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+bool isPos(string OUT){
+	for (int i = 0; i < OUT.size(); i++){
+		for (int j = i; j < OUT.size(); j++){
+			if (OUT.substr(i,OUT.size()-j)=="pos" or OUT.substr(i,OUT.size()-j) =="+"){
+				return 1;
+			}
+		}
+	}
+	return 0;
+}

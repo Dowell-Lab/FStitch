@@ -1021,6 +1021,97 @@ RTOF readTrainingOutFile(string FILE){
 	return retRTOF;
 }
 
+int getStrand(string line)
+{
+    double val;
+    vector<string> lineToks;
+    
+    lineToks=splitter(line, "\t");
+    
+    if(lineToks.size()<4)
+    {
+        return 0;
+    }
+    
+    else
+    {
+        val=strtod(lineToks[3].c_str(), NULL);
+        
+        if(val<0)
+        {
+            return -1;
+        }
+        
+        else if(val>0)
+        {
+            return 1;
+        }
+        
+        else
+        {
+            return 0;
+        }
+    }
+}
+
+/* This function is a last resort used by main_segment and main_train to determine whether or not a given input histogram contains positive, negative, or mixed positive and negative reads. 
+ * 
+ * Return values:
+ * STRAND_UNSPECIFIED on error
+ * STRAND_POSITIVE on positive
+ * STRAND_NEGATIVE on negative
+ * STRAND_BOTH on both.
+ */
+int checkBedFileType(string bedName)
+{
+    int firstLineStrand;
+    ifstream f(bedName);
+    int strand;
+    string l;
+    
+    if(f)
+    {
+        getline(f, l);
+        firstLineStrand=getStrand(l);
+        
+        //If our first line has 0 coverage, then we need to keep fetching lines until we find something with coverage.
+        while(!firstLineStrand && getline(f, l))
+        {
+            firstLineStrand=getStrand(l);
+        }
+        
+        while(getline(f, l))
+        {
+            strand=getStrand(l);
+            
+            if(strand!=firstLineStrand && strand)
+            {
+                return STRAND_BOTH;
+            }
+        }
+        
+        if(firstLineStrand<0)
+        {
+            return STRAND_NEGATIVE;
+        }
+        
+        else if(firstLineStrand>0)
+        {
+            return STRAND_POSITIVE;
+        }
+        
+        else
+        {
+            return STRAND_UNSPECIFIED;
+        }
+    }
+    
+    else
+    {
+        return STRAND_UNSPECIFIED;
+    }
+}
+
 
 
 

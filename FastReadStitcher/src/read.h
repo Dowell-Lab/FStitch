@@ -5,6 +5,9 @@
 #include <map>
 #include <cstdlib>
 #include <sys/stat.h>
+
+/* For strand definitions. */
+#include "ParamWrapper.h"
 using namespace std;
 
 #define CONTIG_STRAND_POS 1
@@ -84,5 +87,21 @@ RTOF readTrainingOutFile(string);
 map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string strand);
 map<string,contig *> readBedGraphFileAll(string,int);
 vector<string> readFileLines(string fileName);
+
+/* This function determines which strand is represented by a given histogram bedgraph line.
+ * In other words, it determines if the last field in line, when tokenized, is positive or negative.
+ * 
+ * This function returns 1 on positive, -1 on negative.
+ */
+int getStrand(string line);
+
+/* This function determines whether a given histogram bedgraph file contains positive reads, 
+ * negative reads, or both positive and negative reads.
+ * 
+ * This function returns STRAND_POSITIVE for a positive strand, STRAND_NEGATIVE for a negative strand,
+ * STRAND_BOTH for both positive and negative strands, and STRAND_UNSPECIFIED if there is an error in reading
+ * or parsing the given file.
+ */
+int checkBedFileType(string bedName);
 
 #endif
