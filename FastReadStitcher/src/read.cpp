@@ -137,9 +137,9 @@ vector<double> contig::getVect(bool ChIP){
             cout<<"Warning: some permutation of values in contig would produce a zero or negative output. l: "<<start<<" r: "<<stop<<" c: "<<cov<<endl;
         }*/
         x.push_back(1);
-        x.push_back(log((start+stop)/2));
-        x.push_back(log((stop-start+1)));
-        x.push_back(log(cov/(stop-start+1)));
+        x.push_back((left+right)/2);//(start+stop)/2);
+        x.push_back((right-left+1));//(stop-start+1));
+        x.push_back(cov/(right-left+1));//stop-start+1));
         //x.push_back((right+left)/2);
         //x.push_back((right-left+1));
         //x.push_back(cov/(right-left+1));
