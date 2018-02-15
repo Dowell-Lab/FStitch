@@ -165,11 +165,11 @@ int run_main_train_pwrapper(ParamWrapper *p)
         }
     }*/
     
-    if(p->strand==STRAND_UNSPECIFIED || p->strand==STRAND_BOTH || strand==".")
+    if(strand=="." && (p->strand==STRAND_UNSPECIFIED || p->strand==STRAND_BOTH))
     {
-        cout<<"Warning: training strand was not specified or the input histogram file contains both positive and negative reads."<<endl;
-        cout<<"This configuration is unfortunately unsupported at this time. Unless the input histogram file contains only"<<endl;
-        cout<<"negative reads, training will be performed on positive reads."<<endl;
+        cout<<"Warning: The input histogram file contains both positive and negative reads and"<<endl;
+        cout<<"no specific training strand was specified. This configuration is unfortunately unsupported at this time."<<endl;
+        cout<<"Proceeding to train on positive strand data only..."<<endl;
         
         strand="+";
         
