@@ -257,7 +257,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
         }
         //=================================================================
         //GET DATA FROM TRAINING INTERVALS
-        run_out RO = run_grabTrainingExamples(R, ContigData, ChIP);
+        RO = run_grabTrainingExamples(R, ContigData, ChIP);
         if (RO.EXIT){
             cout<<"RO.EXIT set. exiting..."<<endl;
             return 0;
@@ -270,7 +270,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
         }
         //=================================================================
         //NEWTONS METHOD
-        vector<double> W;
+        W;
         try
         {
             //W = learn(RO.X, RO.Y, 0, learning_rate);
@@ -287,7 +287,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
         }
         //=================================================================
         //BAUM WELCH ALG
-        BW_OUT BWO 									= runBW(ContigData, W,max_convergence, convergence_threshold,learning_rate, verbose, num_proc, maxSeed, ChIP);
+        BWO 									= runBW(ContigData, W,max_convergence, convergence_threshold,learning_rate, verbose, num_proc, maxSeed, ChIP);
         if (verbose){
             cout<<"done\n";
             cout<<"Writing learned parameters                : ";
