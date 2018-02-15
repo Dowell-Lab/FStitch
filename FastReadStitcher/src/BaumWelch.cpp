@@ -27,9 +27,10 @@ void emissions(contig * dd, vector<double>W, int T, double ** bj, bool ChIP){
 	for (int t =0; t< T; t++){
 		for (int i =0;i <2; i++){
 			if (i==1){
-				bj[i][t] 	= g(d->getVect(ChIP), W);
+				bj[i][t] 	= g(d->getVect(ChIP), W); 
 			}else{
-				bj[i][t] 	= 1.0 - g(d->getVect(ChIP), W);
+				bj[i][t] 	= 1.0 - g(d->getVect(ChIP), W); //This line was marked in a valgrind stacktrace as utilizing an uninitialized value.
+                                                            //The value of d->getVect() is potentially suspect.
 			}
 		}
 		d=d->next;

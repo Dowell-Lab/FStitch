@@ -27,7 +27,7 @@ vector< vector<double> > transpose(vector<vector<double> > H){
 		return newH;
 	}
 	if (H[0].size() == 1 ){//this is just a column vector...make a row vector
-		vector<vector<double> > newH;
+		vector<vector<double> > newH; 
 		newH.push_back(vector<double>(H.size()));
 		for (int i =0; i < H.size(); i++){
 			newH[0][i]=H[i][0];
@@ -61,7 +61,7 @@ double g(vector<double> x, vector<double> w){
 	for (int i = 0; i < x.size(); i++){
 		sum+=x[i]*w[i];
 	}
-	double vl 	= exp(sum) / (1.0 + exp(sum));
+	double vl 	= exp(sum) / (1.0 + exp(sum)); //NOTE: This line was highlighted by Valgrind as utilizing an uninitialized value. Guess: a value in x or w is uninitialized.
 	if (std::isinf(exp(sum))){
 		return 1.0;
 	}
