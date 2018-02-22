@@ -270,7 +270,6 @@ int run_main_train_pwrapper(ParamWrapper *p)
         }
         //=================================================================
         //NEWTONS METHOD
-        W;
         try
         {
             //W = learn(RO.X, RO.Y, 0, learning_rate);

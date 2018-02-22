@@ -34,6 +34,7 @@ splitinputfile_t splitBedgraphFile(string infilename)
     outfile1=ofstream(out.in1);
     
     out.splitGenerated=true;
+    out.wasSplit=false;
 
     while(getline(infile, line))
     {
@@ -51,7 +52,7 @@ splitinputfile_t splitBedgraphFile(string infilename)
             }
 
             //We need to write the tokens individually:
-            outfile2<<lineToks[0]<<"\t"<<lineToks[1]<<"\t"<<lineToks[2]<<"\t"<<stoi(lineToks[3])*-1<<endl;
+            outfile2<<line<<endl; //lineToks[0]<<"\t"<<lineToks[1]<<"\t"<<lineToks[2]<<"\t"<<stoi(lineToks[3])*-1<<endl;
         }
 
         //If we're positive:
@@ -324,8 +325,9 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                     {
                         cout<<"Element 2 could not be converted"<<endl;
                     }
-                    //cout<<"Value "<<lineArray[3]<<" isNum "<<isNum(lineArray[3], strand)<<endl;
-                    //Only add the read if it's going to be valid: 
+                    
+                    //cout<<"Value "<<lineArray[3]<<string(isNum(lineArray[3], strand) ? " is" : " is not")<<" a number given strand "<<strand<<endl;
+                    
                     if(isNum(lineArray[3], strand))
                     {
                         //cout<<"Added values for line "<<line<<endl;
@@ -343,7 +345,6 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                         st          = stoi(lineArray[1]); //Start
                         cov         = stof(lineArray[3]); //Coverage? Waaait.
                         
-                        coverage+=cov;
                         if(strand)
                         {
                             //If we're negative, then invert the value so fstitch doesn't break.
@@ -359,6 +360,7 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                             r                       = st - p;
                             //Start, stop, left, right, coverage, length, chromosome.
                             C->setStats(prevStart-l,p+r, l, r, p-prevStart, coverage, chrom);
+                            //There's a case in which this contig is never properly initialized. 
                             C->next         = new contig;
                             C                       = C->next;
                             prevStart       = st;
@@ -368,7 +370,7 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                         }
 
                         p           = sp;
-                        //coverage+=cov;
+                        coverage+=cov;
                     }
                     
                     //It's clear that not having behavior here is a problem:
