@@ -287,11 +287,9 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
         double l = 0;
         double r = 0;
         bool begin=1;
-        contig * C;
-        contig *c;
-        C               = new contig;
+        contig * C=NULL;
         //C->setStats(0, 0, 0, 0, 0, 0, "");
-        contig * root   = C;
+        contig * root;//   = C;
         double coverage  = 0;
         //int strand=CONTIG_STRAND_POS;
 
@@ -359,10 +357,27 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                         }else if(not begin and (st-p)>2 ){
                             r                       = st - p;
                             //Start, stop, left, right, coverage, length, chromosome.
-                            C->setStats(prevStart-l,p+r, l, r, p-prevStart, coverage, chrom);
+                            if(!C)
+                            {
+                                C=new contig();
+                                root=C;
+                                C->setStats(prevStart-l,p+r, l, r, p-prevStart, coverage, chrom);
+                                C->next=NULL;
+                            }
+                            
+                            else
+                            {
+                                C->next=new contig();
+                                C=C->next;
+                                C->setStats(prevStart-l,p+r, l, r, p-prevStart, coverage, chrom);
+                                C->next=NULL;
+                            }
+                            
+                            
                             //There's a case in which this contig is never properly initialized. 
-                            C->next         = new contig;
-                            C                       = C->next;
+                            //C->next         = new contig;
+                            //C                       = C->next;
+                            
                             prevStart       = st;
                             l                       = prevStart - p;
 
@@ -383,7 +398,30 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
             
             start++;
         }
-        C->next         = NULL;
+        //Question: why the heck is C null?
+        if(C)
+        {
+            C->next         = NULL;
+        }
+        
+        //This might not necessarily be an undesirable condition: I see in practice that there are loads of contigs with data
+        //interspersed with those without.
+        else
+        {
+            cout<<"Potential error condition: C is null. As such, it has never been initialized to a value. Dump of local values and conditions:"<<endl;
+            cout<<"Input filename: "<<FILE<<endl;
+            cout<<"Start pos: "<<start<<endl;
+            cout<<"Stop pos: "<<stop<<endl;
+            cout<<"Strand: "<<strand<<endl;
+            cout<<"Begin: "<<begin<<endl;
+            cout<<"st: "<<st<<endl;
+            cout<<"p: "<<p<<endl;
+            cout<<"prevStart: "<<prevStart<<endl;
+            cout<<"l: "<<l<<endl;
+            cout<<"r: "<<r<<endl;
+            cout<<"coverage: "<<coverage<<endl;
+            cout<<"cov: "<<cov<<endl;
+        }
         
         FH.close();
         CO.EXIT         = false;
