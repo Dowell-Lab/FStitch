@@ -278,8 +278,9 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
         string line, chrom;
         vector<string> lineArray;
         vector<contig> contigs;
-        int st, sp;
-        float cov;
+        int st=0;
+        int sp=0;
+        float cov=0;
         int prevStart= 0;
         int prevStop = 0;
         int p = 0;
@@ -354,7 +355,7 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
                             prevStop        = sp;
                             l                       = sp-prevStop;
                             prevStart       = 0;
-                        }else if(not begin and (st-p)>2 ){
+                        }else if(not begin and (st-p)>2 ){ //NOTE: there are cases in which st is never set.
                             r                       = st - p;
                             //Start, stop, left, right, coverage, length, chromosome.
                             if(!C)
