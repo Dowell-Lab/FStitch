@@ -132,11 +132,11 @@ vector<double> contig::getVect(bool ChIP){
 		//x.push_back(log(length));
 		//x.push_back(log(cov/ (left+right+length)));
         
-        /*
+        
         if((right+left)/2<=0 || (stop-start+1)<=0 || cov/(stop-start+1)<=0)
         {
             cout<<"Warning: some permutation of values in contig would produce a zero or negative output. l: "<<start<<" r: "<<stop<<" c: "<<cov<<endl;
-        }*/
+        }
         x.push_back(1);
         x.push_back((start+stop)/2);
         x.push_back((stop-start+1));
@@ -154,9 +154,16 @@ vector<double> contig::getVect(bool ChIP){
 
 class contigOut{
 public:
+    contigOut();
 	bool EXIT;
 	contig * result;
 };
+
+contigOut::contigOut()
+{
+    this->EXIT=false;
+    this->result=NULL;
+}
 
 contigOut makeContig(string FILE, int start, int stop){
 	contigOut CO;

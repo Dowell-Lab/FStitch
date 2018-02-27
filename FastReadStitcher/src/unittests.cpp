@@ -340,10 +340,10 @@ int main(int argc, char **argv)
     w->specialFileName="tout_splitbed.out";
     run_main_segment_pwrapper(w);
     
-    //printf("\nSegmenting with inputs generated with only positive points on input histogram...\n");
-    //w->outFileName="tout_posbed.bed";
-    //w->specialFileName="tout_posbed.bed";
-    //run_main_segment_pwrapper(w);
+    printf("\nSegmenting with inputs generated with only positive points on input histogram...\n");
+    w->outFileName="tout_posbed.bed";
+    w->specialFileName="tout_posbed.bed";
+    run_main_segment_pwrapper(w);
     
     printf("\nSegmenting with reference inputs given split histogram.\n");
     w->outFileName="tout_splithist.bed";
