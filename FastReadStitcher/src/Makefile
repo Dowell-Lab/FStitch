@@ -94,3 +94,5 @@ unittests: unittests.o BaumWelch.o NewtonsMethod.o read_in_parameters.o read.o m
 clean:
 	@rm -f *.o
 
+fullclean:
+	@rm -f *.o FStitch unittest

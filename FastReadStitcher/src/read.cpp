@@ -109,7 +109,18 @@ file_stats getFHstats(string FILE){
 	FH.close();
 	return file_stats(start_stop, relate);
 }
-contig::contig(){ this->modified=false; }
+contig::contig()
+{ 
+    this->modified=false; 
+    //Set some safe defaults so that we don't blow everything up
+    
+    this->next=NULL;
+    this->start=0;
+    this->stop=1;
+    this->cov=0;
+    this->chrom="";
+    this->strand=0;
+}
 void contig::setStats(int st, int sp, double l, double r, double len, float C, string CHROM){
 	start 	= st;
 	stop 	= sp;
@@ -297,7 +308,7 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
         bool begin=1;
         contig * C=NULL;
         //C->setStats(0, 0, 0, 0, 0, 0, "");
-        contig * root;//   = C;
+        contig * root=NULL;//   = C;
         double coverage  = 0;
         //int strand=CONTIG_STRAND_POS;
 
@@ -942,8 +953,20 @@ map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string
 			D.clear();
 			abort = true;
 		}
-		M[n-1] 			= CO.result;
-		D[relate[n-1]] 	= M[n-1];
+		
+		if(!CO.result)
+        {
+            printf("Got null result.\n");
+            D[relate[n-1]]=new contig();
+        }
+        
+        else
+        {
+            D[relate[n-1]] 	= CO.result;
+        }
+        //Why are we filling M if it's never returned?
+		//M[n-1] 			= CO.result;
+		//M[n-1];
 		
 	}
 	if (abort){
