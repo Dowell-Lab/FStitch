@@ -274,11 +274,11 @@ BW_OUT runBW(map<string,contig *> D, vector<double> W, double cm, double ct, dou
 		//====================================================================
 		// Deallocate necessary arrays
 		for (int i = 0; i < 2; i++){
-			delete bj[i], beta[i],alpha[i], G[i];
+			delete[] bj[i], beta[i],alpha[i], G[i];
 			for (int j = 0; j<2;j++){
-				delete E[i][j];
+				delete[] E[i][j];
 			}
-			delete E[i];	
+			delete[] E[i];	
 		}
 		
 		//====================================================================

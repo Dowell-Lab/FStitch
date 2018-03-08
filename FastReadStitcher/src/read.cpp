@@ -143,11 +143,36 @@ vector<double> contig::getVect(bool ChIP){
 		//x.push_back(log(length));
 		//x.push_back(log(cov/ (left+right+length)));
         
+        //Add dummy branches for debugging:
+        if(right) 
+        {
+        }
         
+        if(left)
+        {
+        }
+        
+        if(stop)
+        {
+        }
+        
+        if(start)
+        {
+        }
+        
+        if(cov)
+        {
+        }
+        
+        if(length)
+        {
+        }
+        
+        /*
         if((right+left)/2<=0 || (stop-start+1)<=0 || cov/(stop-start+1)<=0)
         {
             cout<<"Warning: some permutation of values in contig would produce a zero or negative output. l: "<<start<<" r: "<<stop<<" c: "<<cov<<endl;
-        }
+        }*/
         x.push_back(1);
         x.push_back((start+stop)/2);
         x.push_back((stop-start+1));

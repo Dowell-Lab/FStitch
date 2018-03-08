@@ -150,7 +150,7 @@ map<string, state *> runViterbi(map<string,contig *> ContigData, vector<double> 
 		//====================================================================
 		// Deallocate necessary arrays
 		for (int i = 0; i < 2; i++){
-			delete bj[i], beta[i],alpha[i], G[i];
+			delete[] bj[i], beta[i],alpha[i], G[i];
 		}
 	}
 	return results;
