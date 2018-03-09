@@ -188,7 +188,7 @@ BW_OUT::BW_OUT(bool c, double ll, vector<double> w, double ** a){
 		for (int j =0; j < 2; j ++){
 			aaa.push_back(a[i][j]);
 		}	
-		delete a[i];
+		delete[] a[i];
 		aa.push_back(aaa);
 	}
 	A 			= aa;
