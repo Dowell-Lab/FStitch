@@ -197,45 +197,58 @@ int run_main_train_pwrapper(ParamWrapper *p)
         //=================================================================
         //GET DATA FROM TRAINING INTERVALS
         run_out RO = run_grabTrainingExamples(R, ContigData, ChIP);
-        if (RO.EXIT){
-            cout<<"RO.EXIT set. exiting..."<<endl;
-            return 0;
-        }
-        if (verbose){
-            cout<<"done\n";
-            cout<<"Begin parameter estimation, Newtons Method: ";
-            cout<<flush;
-
-        }
-        //=================================================================
-        //NEWTONS METHOD
-        vector<double> W;
-        try
+        if(!RO.X.size() || !RO.Y.size())
         {
-            //W = learn(RO.X, RO.Y, 0, learning_rate);
-            W=ParameterizedNewtonsMethod(RO.X, RO.Y, 0, learning_rate, p->maxConvergenceIters, convergence_threshold);
-        } catch(int excep)
+            cout<<"It appears that the training file provided was not created for positive strand data. Training on negative strand only..."<<endl;
+        }
+        
+        else
         {
-            cout<<"Error: regression failed. Exiting...";
-            return 0;
-        }
-        if (verbose){
-            cout<<"done\n";
-            cout<<"Parameter estimation, Baum-Welch          : ";
-            cout<<flush;
-        }
-        //=================================================================
-        //BAUM WELCH ALG
-        BW_OUT BWO 									= runBW(ContigData, W,max_convergence, convergence_threshold,learning_rate, verbose, num_proc, maxSeed, ChIP);
-        if (verbose){
-            cout<<"done\n";
-            cout<<"Writing learned parameters                : ";
-            cout<<flush;
+            if (RO.EXIT){
+                cout<<"RO.EXIT set. exiting..."<<endl;
+                return 0;
+            }
+            
+            if (verbose){
+                cout<<"done\n";
+                cout<<"Begin parameter estimation, Newtons Method: ";
+                cout<<flush;
+            }
+            
+            //=================================================================
+            //NEWTONS METHOD
+            vector<double> W;
+            try
+            {
+                //W = learn(RO.X, RO.Y, 0, learning_rate);
+                W=ParameterizedNewtonsMethod(RO.X, RO.Y, 0, learning_rate, p->maxConvergenceIters, convergence_threshold);
+            } catch(int excep)
+            {
+                cout<<"Error: regression failed. Exiting...";
+                return 0;
+            }
+            
+            if (verbose){
+                cout<<"done\n";
+                cout<<"Parameter estimation, Baum-Welch          : ";
+                cout<<flush;
+            }
+            
+            //=================================================================
+            //BAUM WELCH ALG
+            BW_OUT BWO 									= runBW(ContigData, W,max_convergence, convergence_threshold,learning_rate, verbose, num_proc, maxSeed, ChIP);
+            if (verbose){
+                cout<<"done\n";
+                cout<<"Writing learned parameters                : ";
+                cout<<flush;
 
-        }
-        writeTrainingFile(outFile+".pos", BWO, learning_rate, max_convergence, convergence_threshold, ChIP, commandLine);
-        if (verbose){
-            cout<<"done\n";
+            }
+            
+            writeTrainingFile(outFile+".pos", BWO, learning_rate, max_convergence, convergence_threshold, ChIP, commandLine);
+            
+            if (verbose){
+                cout<<"done\n";
+            }
         }
         
         cout<<"Training on negative portion of input histogram..."<<endl;
@@ -249,53 +262,72 @@ int run_main_train_pwrapper(ParamWrapper *p)
             cout<<"Set of contigs was empty. Exiting..."<<endl;
             return 0;
         }
+        
         if (verbose){
             cout<<"done\n";
             cout<<"grabbing training data from bedgraph file : ";
             cout<<flush;
 
         }
+        
         //=================================================================
         //GET DATA FROM TRAINING INTERVALS
         RO = run_grabTrainingExamples(R, ContigData, ChIP);
-        if (RO.EXIT){
-            cout<<"RO.EXIT set. exiting..."<<endl;
-            return 0;
-        }
-        if (verbose){
-            cout<<"done\n";
-            cout<<"Begin parameter estimation, Newtons Method: ";
-            cout<<flush;
-
-        }
-        //=================================================================
-        //NEWTONS METHOD
-        try
+        
+        if(!RO.X.size() || !RO.Y.size())
         {
-            //W = learn(RO.X, RO.Y, 0, learning_rate);
-            W=ParameterizedNewtonsMethod(RO.X, RO.Y, 0, learning_rate, p->maxConvergenceIters, convergence_threshold);
-        } catch(int excep)
+            cout<<"It appears that the training file provided was not created for negative strand data. Ignoring negative strand..."<<endl;
+        }
+        
+        else
         {
-            cout<<"Error: regression failed. Exiting...";
-            return 0;
-        }
-        if (verbose){
-            cout<<"done\n";
-            cout<<"Parameter estimation, Baum-Welch          : ";
-            cout<<flush;
-        }
-        //=================================================================
-        //BAUM WELCH ALG
-        BWO 									= runBW(ContigData, W,max_convergence, convergence_threshold,learning_rate, verbose, num_proc, maxSeed, ChIP);
-        if (verbose){
-            cout<<"done\n";
-            cout<<"Writing learned parameters                : ";
-            cout<<flush;
+            if (RO.EXIT){
+                cout<<"RO.EXIT set. exiting..."<<endl;
+                return 0;
+            }
+            
+            if (verbose){
+                cout<<"done\n";
+                cout<<"Begin parameter estimation, Newtons Method: ";
+                cout<<flush;
 
-        }
-        writeTrainingFile(outFile+".neg", BWO, learning_rate, max_convergence, convergence_threshold, ChIP, commandLine);
-        if (verbose){
-            cout<<"done\n";
+            }
+            
+            vector<double> W;
+            
+            //=================================================================
+            //NEWTONS METHOD
+            try
+            {
+                //W = learn(RO.X, RO.Y, 0, learning_rate);
+                W=ParameterizedNewtonsMethod(RO.X, RO.Y, 0, learning_rate, p->maxConvergenceIters, convergence_threshold);
+            } catch(int excep)
+            {
+                cout<<"Error: regression failed. Exiting...";
+                return 0;
+            }
+            
+            if (verbose){
+                cout<<"done\n";
+                cout<<"Parameter estimation, Baum-Welch          : ";
+                cout<<flush;
+            }
+            
+            //=================================================================
+            //BAUM WELCH ALG
+            BW_OUT BWO 									= runBW(ContigData, W,max_convergence, convergence_threshold,learning_rate, verbose, num_proc, maxSeed, ChIP);
+            if (verbose){
+                cout<<"done\n";
+                cout<<"Writing learned parameters                : ";
+                cout<<flush;
+
+            }
+            
+            writeTrainingFile(outFile+".neg", BWO, learning_rate, max_convergence, convergence_threshold, ChIP, commandLine);
+            
+            if (verbose){
+                cout<<"done\n";
+            }
         }
         
         //Delete the split files:

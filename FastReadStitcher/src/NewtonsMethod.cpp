@@ -461,9 +461,17 @@ vector<double> NewtonsMethod(vector< vector<double> > X, vector<int> Y, bool ver
 
 vector<double> ParameterizedNewtonsMethod(vector< vector<double> > X, vector<int> Y, bool verbose, double alpha, int numIters, double thresh){
 	vector<double> W;
+    
+    if(X.size()==0)
+    {
+        cout<<"ERROR: provided vector X is empty. As such, there are no initial weights to report on. Regression failed."<<endl;
+        return W;
+    }
+    
 	for (int i = 0; i < X[0].size(); i++){
 		W.push_back(0.0); 	//Initialize Starting Weights to Zero
 	}
+	
 	vector< vector<double> > reg = identity(X[0].size());
 
 
