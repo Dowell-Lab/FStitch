@@ -314,7 +314,7 @@ contigOut makeContig(string FILE, int start, int stop){
 	return CO;
 }
 
-contigOut makeContigStrand(string FILE, int start, int stop, int strand){
+contigOut makeContigStrand(string FILE, int start, int stop, int strand, bool verbose){
         contigOut CO;
         ifstream FH(FILE);
         FH.seekg(start);
@@ -450,7 +450,7 @@ contigOut makeContigStrand(string FILE, int start, int stop, int strand){
         
         //This might not necessarily be an undesirable condition: I see in practice that there are loads of contigs with data
         //interspersed with those without.
-        else
+        else if(verbose)
         {
             cout<<"Potential error condition: C is null. As such, it has never been initialized to a value. Dump of local values and conditions:"<<endl;
             cout<<"Input filename: "<<FILE<<endl;
@@ -781,7 +781,7 @@ map<string,contig *> readBedGraphFileStrand(string FILE, map<string, interval *>
         {
                 #pragma omp flush (abort)
                 if (T.find(relate[n-1])!=T.end()){
-                        contigOut CO    = makeContigStrand(FILE, start_stop[n-1],start_stop[n], strand);
+                        contigOut CO    = makeContigStrand(FILE, start_stop[n-1],start_stop[n], strand, verbose);
                         if (CO.EXIT){
                                 D.clear();
                                 abort = true;
@@ -954,7 +954,7 @@ map<string,contig *> readBedGraphFileAll(string FILE,int np){
 
 //This follows the conventions for strand established in main_segment:
 //"+" for pos strand, "-" for neg strand, and "." for both (unsupported).
-map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string strand)
+map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string strand, bool verbose)
 {
     int str;
     
@@ -973,7 +973,7 @@ map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string
 	for(int n=1; n<start_stop.size(); ++n)
 	{
 		#pragma omp flush (abort)
-		contigOut CO 	= makeContigStrand(FILE, start_stop[n-1], start_stop[n], str);//makeContig(FILE, start_stop[n-1],start_stop[n]);
+		contigOut CO 	= makeContigStrand(FILE, start_stop[n-1], start_stop[n], str, verbose);//makeContig(FILE, start_stop[n-1],start_stop[n]);
 		if (CO.EXIT){
 			D.clear();
 			abort = true;

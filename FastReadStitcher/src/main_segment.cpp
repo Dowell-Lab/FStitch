@@ -236,7 +236,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         
         vector<string> outFileToks=splitter(outFilePathToks[outFilePathToks.size()-1], ".");
 
-        map<string,contig *> ContigData = readBedGraphFileAllGivenStrand(inbeds.in1, num_proc, "+");
+        map<string,contig *> ContigData = readBedGraphFileAllGivenStrand(inbeds.in1, num_proc, "+", verbose);
         if (ContigData.empty()){
             cout<<"ContigData is empty. exiting..."<<endl;
             return 0;
@@ -269,7 +269,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             cout<<"done"<<endl;
         }
 
-        ContigData 	= readBedGraphFileAllGivenStrand(inbeds.in2, num_proc, "-");
+        ContigData 	= readBedGraphFileAllGivenStrand(inbeds.in2, num_proc, "-", verbose);
         if (ContigData.empty()){
             cout<<"exiting..."<<endl;
             return 0;
@@ -319,7 +319,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     //Otherwise, we just need to segment once:
     else
     {
-        map<string,contig *> ContigData 	= readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand);//readBedGraphFileAll(BedGraphFile,num_proc);
+        map<string,contig *> ContigData 	= readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand, verbose);//readBedGraphFileAll(BedGraphFile,num_proc);
         if (ContigData.empty()){
             cout<<"exiting..."<<endl;
             return 0;

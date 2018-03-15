@@ -84,7 +84,7 @@ tmpfile_t mergeSplitBedGraph(string, string);
 map<string,contig *> readSplitBedGraphFileStrand(string, string, map<string, interval *>, bool, int);
 map<string, map<string, interval *>> readRefSeq(string);
 RTOF readTrainingOutFile(string);
-map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string strand);
+map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string strand, bool verbose);
 map<string,contig *> readBedGraphFileAll(string,int);
 vector<string> readFileLines(string fileName);
 

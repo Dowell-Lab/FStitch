@@ -181,7 +181,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
         cout<<"Training on positive portion of input histogram..."<<endl;
         
         BedGraphFile=inbeds.in1;
-        ContigData=readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand);
+        ContigData=readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand, verbose);
     
         //map<string,contig *> ContigData = readBedGraphFileStrand(BedGraphFile,TrainingIntervals,1,);
         if (ContigData.empty()){
@@ -255,7 +255,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
         
         BedGraphFile=inbeds.in2;
         strand="-";
-        ContigData=readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand);
+        ContigData=readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand, verbose);
     
         //map<string,contig *> ContigData = readBedGraphFileStrand(BedGraphFile,TrainingIntervals,1,);
         if (ContigData.empty()){
@@ -337,7 +337,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
     
     else
     {
-        ContigData=readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand);
+        ContigData=readBedGraphFileAllGivenStrand(BedGraphFile, num_proc, strand, verbose);
         
         //map<string,contig *> ContigData = readBedGraphFileStrand(BedGraphFile,TrainingIntervals,1,);
         if (ContigData.empty()){
