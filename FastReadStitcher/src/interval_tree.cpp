@@ -72,6 +72,7 @@ void T::assemble(interval * intervals){
 T::T(node * NODES){
 	nodes 	= NODES;
 }
+
 void T::build(){
 	node * C 		= nodes;
 	node * root 	= NULL;

@@ -251,6 +251,23 @@ int run_main_train_pwrapper(ParamWrapper *p)
             }
         }
         
+        map<string, contig *>::iterator cti;
+        int ctgChainSize=0;
+        
+        for(cti=ContigData.begin(); cti!=ContigData.end();cti++)
+        {
+            if(cti->second)
+            {
+                ctgChainSize+=altDelContigChain(cti->second, 1);
+                //delete(cti->second);
+                cti->second=NULL;
+            }
+        }
+        
+        ContigData.clear();
+        
+        printf("Deleted a %d contigs totaling %lu bytes.\n", ctgChainSize, ctgChainSize*sizeof(contig));
+        
         cout<<"Training on negative portion of input histogram..."<<endl;
         
         BedGraphFile=inbeds.in2;
@@ -267,7 +284,6 @@ int run_main_train_pwrapper(ParamWrapper *p)
             cout<<"done\n";
             cout<<"grabbing training data from bedgraph file : ";
             cout<<flush;
-
         }
         
         //=================================================================
@@ -316,6 +332,21 @@ int run_main_train_pwrapper(ParamWrapper *p)
             //=================================================================
             //BAUM WELCH ALG
             BW_OUT BWO 									= runBW(ContigData, W,max_convergence, convergence_threshold,learning_rate, verbose, num_proc, maxSeed, ChIP);
+            
+            //Clear the contents of ContigData:
+            ctgChainSize=0;
+            for(cti=ContigData.begin(); cti!=ContigData.end();cti++)
+            {
+                if(cti->second)
+                {
+                    ctgChainSize+=altDelContigChain(cti->second, 1);
+                    //delete(cti->second);
+                    cti->second=NULL;
+                }
+            }
+            
+            printf("Deleted a %d contigs totaling %lu bytes.\n", ctgChainSize, ctgChainSize*sizeof(contig));
+            
             if (verbose){
                 cout<<"done\n";
                 cout<<"Writing learned parameters                : ";
@@ -393,5 +424,22 @@ int run_main_train_pwrapper(ParamWrapper *p)
         if (verbose){
             cout<<"done\n";
         }
+        
+        map<string, contig *>::iterator cti;
+        int ctgChainSize=0;
+        
+        for(cti=ContigData.begin(); cti!=ContigData.end();cti++)
+        {
+            if(cti->second)
+            {
+                ctgChainSize+=altDelContigChain(cti->second, 1);
+                //delete(cti->second);
+                cti->second=NULL;
+            }
+        }
+        
+        ContigData.clear();
+        
+        printf("Deleted a %d contigs totaling %lu bytes.\n", ctgChainSize, ctgChainSize*sizeof(contig));
     }
 }

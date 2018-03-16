@@ -270,6 +270,16 @@ BW_OUT runBW(map<string,contig *> D, vector<double> W, double cm, double ct, dou
 			}
 			k++;
 			prevLL 	= LL;
+            /*
+            for(int i=0;i<2;i++)
+            {
+                for(int j=0;j<2;j++)
+                {
+                    //printf("%f ", A[i][j]);
+                }
+            }
+            
+            printf("\n");*/
 		}
 		//====================================================================
 		// Deallocate necessary arrays

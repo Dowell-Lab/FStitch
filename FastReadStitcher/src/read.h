@@ -88,6 +88,9 @@ map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string
 map<string,contig *> readBedGraphFileAll(string,int);
 vector<string> readFileLines(string fileName);
 
+int delContigChain(contig *c, int n);
+int altDelContigChain(contig *c, int n);
+
 /* This function determines which strand is represented by a given histogram bedgraph line.
  * In other words, it determines if the last field in line, when tokenized, is positive or negative.
  * 

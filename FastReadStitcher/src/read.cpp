@@ -121,6 +121,51 @@ contig::contig()
     this->chrom="";
     this->strand=0;
 }
+
+int delContigChain(contig *c, int n)
+{
+    int retV;
+    
+    if(!c)
+    {
+        return n;
+    }
+    
+    if(c->next)
+    {
+        retV=delContigChain(c->next, n+1);
+    }
+    
+    else
+    {
+        printf("At bottom of contig deletion chain. Number of contigs deleted: %d\n", n);
+        retV=n;
+    }
+    
+    delete c;
+    
+    return retV;
+}
+
+int altDelContigChain(contig *c, int n)
+{
+    contig *p, *np;
+    int i;
+    
+    p=c;
+    i=n;
+    
+    while(p)
+    {
+        np=p->next;
+        delete p;
+        p=np;
+        i++;
+    }
+    
+    return i;
+}
+
 void contig::setStats(int st, int sp, double l, double r, double len, float C, string CHROM){
 	start 	= st;
 	stop 	= sp;
@@ -562,7 +607,7 @@ int lineCompare(string line1, string line2)
     char *ptr;
     int l1col, l2col;
     
-    line1c=(char*) line1.c_str();
+    line1c=(char*) line1.c_str(); //According to the C++ standard, we are not requiredd to deallocate the char arrays returned by c_str().
     line2c=(char*) line2.c_str();
 
     //Awful kluge to find the second column in each line:
@@ -981,7 +1026,10 @@ map<string, contig *> readBedGraphFileAllGivenStrand(string FILE, int np, string
 		
 		if(!CO.result)
         {
-            printf("Got null result.\n");
+            if(verbose)
+            {
+                printf("Got null result.\n");
+            }
             D[relate[n-1]]=new contig();
         }
         

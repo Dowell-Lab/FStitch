@@ -268,6 +268,23 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         if (verbose){
             cout<<"done"<<endl;
         }
+        
+        map<string, contig *>::iterator cti;
+        int ctgChainSize=0;
+        
+        for(cti=ContigData.begin(); cti!=ContigData.end();cti++)
+        {
+            if(cti->second)
+            {
+                ctgChainSize+=altDelContigChain(cti->second, 1);
+                //delete(cti->second);
+                cti->second=NULL;
+            }
+        }
+        
+        ContigData.clear();
+        
+        printf("Deleted a %d contigs totaling %lu bytes.\n", ctgChainSize, ctgChainSize*sizeof(contig));
 
         ContigData 	= readBedGraphFileAllGivenStrand(inbeds.in2, num_proc, "-", verbose);
         if (ContigData.empty()){
@@ -302,6 +319,22 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         if (verbose){
             cout<<"done"<<endl;
         }
+        
+        ctgChainSize=0;
+        
+        for(cti=ContigData.begin(); cti!=ContigData.end();cti++)
+        {
+            if(cti->second)
+            {
+                ctgChainSize+=altDelContigChain(cti->second, 1);
+                //delete(cti->second);
+                cti->second=NULL;
+            }
+        }
+        
+        ContigData.clear();
+        
+        printf("Deleted a %d contigs totaling %lu bytes.\n", ctgChainSize, ctgChainSize*sizeof(contig));
 
         //Only delete the files if they were either generated here or we don't want debugging information.
         if(!verbose && inbeds.splitGenerated)
@@ -361,6 +394,23 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         {
             cout<<"All temporary files mentioned previously have been preserved. Delete them manually if necessary."<<endl;
         }
+        
+        map<string, contig *>::iterator cti;
+        int ctgChainSize=0;
+        
+        for(cti=ContigData.begin(); cti!=ContigData.end();cti++)
+        {
+            if(cti->second)
+            {
+                ctgChainSize+=altDelContigChain(cti->second, 1);
+                //delete(cti->second);
+                cti->second=NULL;
+            }
+        }
+        
+        ContigData.clear();
+        
+        printf("Deleted a %d contigs totaling %lu bytes.\n", ctgChainSize, ctgChainSize*sizeof(contig));
     }
 
     return 1;
