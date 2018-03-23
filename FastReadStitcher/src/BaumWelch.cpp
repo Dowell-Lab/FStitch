@@ -200,7 +200,6 @@ BW_OUT runBW(map<string,contig *> D, vector<double> W, double cm, double ct, dou
 	omp_set_num_threads(np); // Use 4 threads for all consecutive parallel regions
 	#pragma omp parallel for
 	for (int i = 0; i < maxSeed; i++){
-
 		string chrom 		= D.begin()->first;
 		contig * X 			= D[chrom];
 		contig * root 		= X;
@@ -270,21 +269,11 @@ BW_OUT runBW(map<string,contig *> D, vector<double> W, double cm, double ct, dou
 			}
 			k++;
 			prevLL 	= LL;
-            /*
-            for(int i=0;i<2;i++)
-            {
-                for(int j=0;j<2;j++)
-                {
-                    //printf("%f ", A[i][j]);
-                }
-            }
-            
-            printf("\n");*/
 		}
 		//====================================================================
 		// Deallocate necessary arrays
 		for (int i = 0; i < 2; i++){
-			delete[] bj[i], beta[i],alpha[i], G[i];
+			delete[] bj[i], beta[i], alpha[i], G[i];
 			for (int j = 0; j<2;j++){
 				delete[] E[i][j];
 			}

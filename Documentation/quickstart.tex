@@ -31,25 +31,44 @@ There are currently two commands usable by FStitch:
 
 \section{Training}
 The first step in using FStitch is to have it analyze a set of manually labeled regions of interest within a genome to determine a set of training weights.
-This allows FStitch to later predict regions of transcription within a genome given a bedgraph file. In order to do this, it is necessary to pass, at minimum,
+This allows FStitch to later predict regions of transcription within a genome given a bedgraph file. These learned weights may be inferred from either a positive
+or negative strand's data, but not both. FStitch attempts to automatically infer which strand a given training set was created for, though this process is imperfect.
+
+In order to perform training, it is necessary to pass, at minimum,
 the following list of parameters to FStitch:
 
 \begin{enumerate}
- \item \textit{-a annotations.bed} FStitch needs a set of reference annotations so that it can learn how to mark regions given an input bedgraph.
+ \item \textit{-t training.bed} FStitch needs a set of reference annotations so that it can learn how to mark regions given an input bedgraph.
  \item \textit{-r input.BedGraph} In order to determine what each label means in context, FStitch needs the input data from which reads were labeled.
  \item \textit{-o outputfilename} Once FStitch generates a set of weights, it needs to store them in an output file. This parameter allows you to specify that file.
 \end{enumerate}
 
+It is further useful to manually specify which strand of data was used to create the training data provided. In order to do this, use the \textit{--strand} parameter
+with one of the following options:
+
+\begin{enumerate}
+ \item \textit{+} Assume that training data covers the positive strand.
+ \item \textit{-} Assume that training data covers the negative strand.
+ \item \textit{both} While not yet implemented, this option will imply that the given training file has data for both the positive and negative strand. This will be accomplished through a BED6 file.
+\end{enumerate}
+
 These parameters can be used to form the following command line:
 \begin{verbatim}
-FStitch train -a annotations.bed -r input.BedGraph -o outputfilename.out
+FStitch train -t training.bed -r input.BedGraph -o outputfilename.out
+\end{verbatim}
+
+The following is an example of a command line with an explicit strand specification:
+\begin{verbatim}
+FStitch train -t training.bed -r input.BedGraph -o outputfilename.out --strand -
 \end{verbatim}
 
 Please note that the above parameters may be specified in any order as long as they follow the `train' command.
 There are a number of additional parameters and modes that can be specified. To see these, either run FStitch without any arguments or consult the full users guide.
 
 \section{Segmentation}
-The second step in using FStitch is to have it predict regions of transcription given a weights file and a bedgraph. This requires the following set of parameters:
+The second step in using FStitch is to have it predict regions of transcription given a weights file and a bedgraph. It is important to note that a given set of training 
+weights can be applied to both positive and negative read data. By default, if presented with an input reads histogram containing both positive and negative strand data, FStitch will 
+use the given training weights on both sets of data within that file. This requires the following set of parameters:
 
 \begin{enumerate}
  \item \textit{-r input.BedGraph} It is necessary to have an input dataset to annotate.
