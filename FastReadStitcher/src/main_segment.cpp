@@ -265,9 +265,24 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         }
         
         writeViterbiPaths(outFilePathPrefix+outFileToks[0]+".pos.bed", results, refFile, strand, RTOF_params.commandLine, commandLine);
+        
         if (verbose){
             cout<<"done"<<endl;
         }
+        
+        map<string, state *>::iterator sti;
+        int stChainSize=0;
+        for(sti=results.begin(); sti!=results.end(); sti++)
+        {
+            if(sti->second)
+            {
+                stChainSize+=delResultChain(sti->second, 1);
+                sti->second=NULL;
+            }
+        }
+        
+        results.clear();
+        printf("Deleted %d states totaling %lu byts.\n", stChainSize, stChainSize*sizeof(state));
         
         map<string, contig *>::iterator cti;
         int ctgChainSize=0;
@@ -284,7 +299,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         
         ContigData.clear();
         
-        printf("Deleted a %d contigs totaling %lu bytes.\n", ctgChainSize, ctgChainSize*sizeof(contig));
+        printf("Deleted %d contigs totaling %lu bytes.\n", ctgChainSize, ctgChainSize*sizeof(contig));
 
         ContigData 	= readBedGraphFileAllGivenStrand(inbeds.in2, num_proc, "-", verbose);
         if (ContigData.empty()){
@@ -319,6 +334,20 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         if (verbose){
             cout<<"done"<<endl;
         }
+        
+        stChainSize=0;
+        
+        for(sti=results.begin(); sti!=results.end(); sti++)
+        {
+            if(sti->second)
+            {
+                stChainSize+=delResultChain(sti->second, 1);
+                sti->second=NULL;
+            }
+        }
+        
+        results.clear();
+        printf("Deleted %d states totaling %lu byts.\n", stChainSize, stChainSize*sizeof(state));
         
         ctgChainSize=0;
         
@@ -394,6 +423,20 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         {
             cout<<"All temporary files mentioned previously have been preserved. Delete them manually if necessary."<<endl;
         }
+        
+        map<string, state *>::iterator sti;
+        int stChainSize=0;
+        for(sti=results.begin(); sti!=results.end(); sti++)
+        {
+            if(sti->second)
+            {
+                stChainSize+=delResultChain(sti->second, 1);
+                sti->second=NULL;
+            }
+        }
+        
+        results.clear();
+        printf("Deleted %d states totaling %lu byts.\n", stChainSize, stChainSize*sizeof(state));
         
         map<string, contig *>::iterator cti;
         int ctgChainSize=0;

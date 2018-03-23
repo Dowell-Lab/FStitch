@@ -21,4 +21,6 @@ public:
 };
 
 map<string, state *> runViterbi(map<string,contig *> , vector<double> , vector<vector<double>>, int , bool);
+
+int delResultChain(state* st, int v);
 #endif

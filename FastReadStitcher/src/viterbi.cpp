@@ -34,6 +34,25 @@ double getEmit(vector<double> x, vector<double> W, int k){
 	}
 }
 
+int delResultChain(state* st, int v)
+{
+    state *p, *np;
+    int i;
+    
+    p=st;
+    i=v;
+    
+    while(p)
+    {
+        np=p->next;
+        delete p;
+        p=np;
+        i++;
+    }
+    
+    return i;
+}
+
 map<string, state *> runViterbi(map<string,contig *> ContigData, vector<double> W, vector<vector<double>> a, int np, bool ChIP){
 	typedef map<string,contig *>::iterator c_it;
 	static double pi 	= 0.5;
