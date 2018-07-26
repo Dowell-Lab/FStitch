@@ -33,6 +33,33 @@ int run_main_segment_pwrapper(ParamWrapper *p)
 
     if(p->strand==STRAND_UNSPECIFIED)
     {
+        determinedStrand=checkBedFileType(BedGraphFile);
+            
+        if(determinedStrand==STRAND_POSITIVE)
+        {
+            strand="+";
+            cout<<"Input bedgraph file determined to be positive based on file contents."<<endl;
+        }
+        
+        else if(determinedStrand==STRAND_NEGATIVE)
+        {
+            strand="-";
+            cout<<"Input bedgraph file determined to be negative based on file contents."<<endl;
+        }
+        
+        else if(determinedStrand==STRAND_BOTH)
+        {
+            strand=".";
+            cout<<"Input bedgraph file determined to contain both positive and negative strand data"<<endl;
+            cout<<"based on file contents."<<endl;
+        }
+        
+        else
+        {
+            cout<<"Input bedgraph file is poorly formatted or unreadable. Exiting..."<<endl;
+            return 0;
+        }
+            /*
         cout<<"NOTE: segmented strand not specified. Attempting to determine strand from reads histogram file..."<<endl;
         if (isPos(BedGraphFile)){
             strand = "+";
@@ -41,7 +68,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             strand = "-";
             cout<<"Input bedgraph file determined to be negative based on file name"<<endl;
         }else{
-            /* Attempt to determine the bed file type based on its contents: */
+            /* Attempt to determine the bed file type based on its contents: 
             determinedStrand=checkBedFileType(BedGraphFile);
             
             if(determinedStrand==STRAND_POSITIVE)
@@ -70,7 +97,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             }
             strand = ".";
             cout<<"Input bedgraph file determined to be both positive and negative."<<endl;
-        }
+        }*/
     }
 
     else if(p->strand==STRAND_BOTH)

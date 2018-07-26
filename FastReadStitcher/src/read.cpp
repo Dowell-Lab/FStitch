@@ -1180,6 +1180,7 @@ int getStrand(string line)
     else
     {
         val=strtod(lineToks[3].c_str(), NULL);
+        printf("strtod is %s\n", lineToks[3].c_str());
         
         if(val<0)
         {
