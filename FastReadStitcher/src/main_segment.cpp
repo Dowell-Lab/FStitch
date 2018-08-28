@@ -38,18 +38,21 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         if(determinedStrand==STRAND_POSITIVE)
         {
             strand="+";
+            p->strand=STRAND_POSITIVE;
             cout<<"Input bedgraph file determined to be positive based on file contents."<<endl;
         }
         
         else if(determinedStrand==STRAND_NEGATIVE)
         {
             strand="-";
+            p->strand=STRAND_NEGATIVE;
             cout<<"Input bedgraph file determined to be negative based on file contents."<<endl;
         }
         
         else if(determinedStrand==STRAND_BOTH)
         {
             strand=".";
+            p->strand=STRAND_BOTH;
             cout<<"Input bedgraph file determined to contain both positive and negative strand data"<<endl;
             cout<<"based on file contents."<<endl;
         }
