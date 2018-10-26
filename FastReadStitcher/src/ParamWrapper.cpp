@@ -3,41 +3,66 @@
 void ParamWrapper::printUsage()
 {
     //We're going to print this block the C way to save on time and pain:
-    printf("Usage: FStitch command [arguments]\n");
-    printf("Where command is one of the following:\n");
-    printf(" train   -- Trains FStitch on a set of training data specified using\n");
-    printf("            some combination of arguments.\n");
-    printf(" segment -- Generates annotations based on a trained model and input\n");
-    printf("            data specified using some combination of arguments.\n");
+    printf("Fast Stitch Reader (FStitch)\n");
+    printf("Annotation agnostic tool used to determine regions of active transcription using a\n");
+    printf("log-likelihood regression LLR adjusted hidden Markov Model (HMM).\n");
     printf("\n");
-    printf("If 'train' is specified, then [arguments] may be one or more of the\n");
-    printf("following:\n");
-    printf(" -r <read bedgraph>   This specifies the file containing the histogram\n");
-    printf("                      of all reads as a BED4 file.\n");
-    printf(" -rp <pos read BED4>  If -r is not specified, then this specifies the file\n");
-    printf("                      containing the histogram of positive reads as a BED4 file.\n");
-    printf(" -rn <neg read BED4>  If -r is not specified, then this specifies the file\n");
-    printf("                      containing the histogram of negative reads as a BED4 file.\n");
-    printf("                      This parameter must be used in conjunction with -rp\n");
-    printf("                      regardless of the strand used for training.\n");
-    printf(" -o <output file>     This specifies the file to store.\n");
-    printf(" -np <number>         This specifies the number of processors to run on.\n");
-    printf("                      The default value is 8.\n");
-    printf(" -v                   This enables verbose logging and output.\n");
-    printf(" -chip                This toggles whether or not the input data was\n");
-    printf("                      generated with ChIP-seq or any other single-stranded\n");
-    printf("                      genomic data.\n");
+    printf("For more usage information, bug reporting, and questions see themake  GitHub repository @:\n");
+    printf("https://github.com/Dowell-Lab/FStitch\n");
+    printf("\n");
+    printf("Useage:                FStitch [module] [arguments]\n");
+    printf("\n");
+    printf("Where module is one of the following:\n");
+    printf("\n");
+    printf("train                  Trains FStitch on user specified regions in BED4 format.\n");
+    printf("                       NOTE: You can only train on data one strand (sense or anti-sense).\n");
+    printf("\n");
+    printf("Required arguments:\n");
+    printf("  -r <read bedgraph>   This specifies the file containing the histogram\n");
+    printf("                       of all reads as a BED4 file.\n");
+    printf("  -o <output file>     This specifies the file to store.\n");
+    // The option "both/." is still written into the code -- however this does not make sense and should be probably removed
+    printf("  --strand <+/->       This specifies whether or not training should be\n");
+    printf("                       performed on either the positive strand, the\n");
+    printf("                       negative strand, or both. The default is 'both'\n");
+    printf("  -t <file>            This specifies a training input file containing information\n");
+    printf("                       for BOTH on and off annotations. The input should be a BED3 file\n");
+    printf("                       (chr, start, stop) with labels, ie. it uses the following format:\n");
+    printf("                       chr [tab] start [tab] stop [tab] 1 / 0 (on / off).\n");
+    printf("Optional arguments:\n");
+    printf("  -np <integer>        This specifies the number of processors to run on.\n");
+    printf("                       The default value is 8.\n");
+    /* rp and rn function, but can very easily lead to a numnber of errors if the user inputs a bedGraph with both
+     * positive and negative strand information. -r works fine and the strand the user wants to train on based on .bed file
+     * should then specified using the argument --strand. NOTE: FStitch cannot train on both strands!!
+     */
+    //printf(" -rp <pos read BED4>  If -r is not specified, then this specifies the file\n");
+    //printf("                      containing the histogram of positive reads as a BED4 file.\n");
+    //printf(" -rn <neg read BED4>  If -r is not specified, then this specifies the file\n");
+    //printf("                      containing the histogram of negative reads as a BED4 file.\n");
+    //printf("                      This parameter must be used in conjunction with -rp\n");
+    //printf("                      regardless of the strand used for training.\n");
+    /* This flag is somewhat useful (emphasis on somewhat) on our end for trouble-shooting but should not be a documented option
+     * until bugs are cleaned up
+     */
+    //printf(" -v                   This enables verbose logging and output.\n");
+    /* This flag appears to still function but leads to many errors -- need to determine how its functioning and either remove
+     * or edit it
+     */
+    //printf(" -chip                This toggles whether or not the input data was\n");
+    //printf("                      generated with ChIP-seq or any other single-stranded\n");
+    //printf("                      genomic data.\n");
     //TODO: rewrite the following:
-    printf(" -cm <default=100>    This sets the maximum number of iterations for learning.\n");
-    printf(" -ct <default=0.001>  This sets the convergence threshold.\n");
+    /* Changing this does not appear to have a signficant effect on performance of the model. It's
+     * probably best to not have the user specify these
+     */
+    //printf(" -cm <default=100>    This sets the maximum number of iterations for learning.\n");
+    //printf(" -ct <default=0.001>  This sets the convergence threshold.\n");
     //CHANGED FROM -al
-    printf(" -lr <default=0.4>    This sets the learning rate.\n");
-    printf(" -reg <default=1>     This sets some kind of regularization parameter.\n");
-    printf(" -ms <default=20>     This sets the maximum seed value.\n");
+    //printf(" -lr <default=0.4>    This sets the learning rate.\n");
+    //printf(" -reg <default=1>     This sets some kind of regularization parameter.\n");
+    //printf(" -ms <default=20>     This sets the maximum seed value.\n");
     //End of region marked for rewrite.
-    printf(" --strand <+/-/both>  This specifies whether or not training should be\n");
-    printf("                      performed on either the positive strand, the\n");
-    printf("                      negative strand, or both. The default is 'both'\n");
     //printf("If both strands are selected:\n");
     //printf(" --postrainingfile <file> This specifies the training data for the positive strand.\n");
     //printf("                   This file is a bed3 file with labels. Ie. it uses the\n");
@@ -53,43 +78,40 @@ void ParamWrapper::printUsage()
     //printf("                   chr[tab]start[tab]stop[tab]1 or 0[tab]score[tab]strand\n");
     //printf("\n");
     //printf("If only a single strand was selected:\n");
-    printf("You must specify a training file. If --on or --off is specified, then\n");
-    printf("both --on and --off must be specified. -t can be used instead for training\n");
-    printf("files in which both on and off regions are present.\n");
-    printf(" --on <file>       This specifies the training data marking all \"on\"\n");
-    printf("                   regions. It is a bed3 file formatted as follows:\n");
-    printf("                   chromosome[tab]start[tab]stop\n");
-    printf(" --off     <file>  This specifies the training data marking all \"off\"\n");
-    printf("                   regions. It follows the same format as --on.\n");
-    printf(" -t <file>         This specifies a training input file containing information\n");
-    printf("                   for BOTH on and off annotations. If this option is specified,\n");
-    printf("                   then neither onfile nor negfile need be used. The input should\n");
-    printf("                   be a bed3 file with labels, ie. it uses the following format:\n");
-    printf("                   chr[tab]start[tab]stop[tab]1 or 0 for on/off.\n");
+    //printf("You must specify a training file. If --on or --off is specified, then\n");
+    //printf("both --on and --off must be specified. -t can be used instead for training\n");
+    //printf("files in which both on and off regions are present.\n");
+    //printf(" --on <file>       This specifies the training data marking all \"on\"\n");
+    //printf("                   regions. It is a bed3 file formatted as follows:\n");
+    //printf("                   chromosome[tab]start[tab]stop\n");
+    //printf(" --off     <file>  This specifies the training data marking all \"off\"\n");
+    //printf("                   regions. It follows the same format as --on.\n");
     printf("\n");
-    printf("If 'segment' is specified, then [arguments] may be one or more of the\n");
-    printf("following:\n");
-    printf(" --strand <+/->         This specifies whether to segment based on information\n");
+    printf("segment                 Annotates regions of predicted active transcription in BED9 format\n");
+    printf("                        using LLR and HMM parameters generated from the train module.\n");
+    printf("\n");
+    printf("Required arguments:\n");
+    printf("  --strand <+/->        This specifies whether to segment based on information\n");
     printf("                        in the positive strand, the negative strand, or both.\n");
     printf("                        This parameter should match what was used in training.\n");
     printf("                        FStitch will attempt to automatically determine this\n");
     printf("                        based on the input file provided, but this determination\n");
     printf("                        may not always be accurate or desirable.\n");
-    printf(" --report <on/off/both> This specifies whether annotations generated by FStitch\n");
+    printf("  --report <on/off/>    This specifies whether annotations generated by FStitch\n");
     printf("                        should only report \"on\" regions, \"off\" regions, or both.\n");
     printf("                        The default value is \"on\".\n");
-    printf(" -w <file>              This specifies the input weights generated using the 'train'\n");
+    printf("  -w <file>             This specifies the input weights generated using the 'train'\n");
     printf("                        command.\n");
 
-    printf(" -r <read bedgraph>     This specifies the file containing  the histogram\n");
+    printf("  -r <read bedgraph>    This specifies the file containing  the histogram\n");
     printf("                        of all reads as a bed4 file.\n");
-    printf(" -rp <pos read BED4>    If -r is not specified, then this specifies the file\n");
+    printf("  -rp <pos read BED4>   If -r is not specified, then this specifies the file\n");
     printf("                        containing the histogram of positive reads as a BED4 file.\n");
-    printf(" -rn <neg read BED4>    If -r is not specified, then this specifies the file\n");
+    printf("  -rn <neg read BED4>   If -r is not specified, then this specifies the file\n");
     printf("                        containing the histogram of negative reads as a BED4 file.\n");
     printf("                        This parameter must be used in conjunction with -rp\n");
     printf("                        regardless of the strand used for training.\n");
-    printf(" -o <file>              This specifies the output annotation file.\n\n");
+    printf("  -o <file>             This specifies the output annotation file.\n\n");
 }
 
 void ParamWrapper::dumpValues()
@@ -176,6 +198,8 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     
     if(argc==1)
     {
+        printf("ERROR: arguments expected after command specification.\n");
+        printf("\n");
         this->exit=true;
         this->printUsage();
         
@@ -184,7 +208,6 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     
     if(argc==2)
     {
-        printf("Error: arguments expected after command specification.\n");
         this->exit=true;
         this->printUsage();
         
@@ -447,6 +470,6 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     this->params=paramMap;
     //That should probably do it.
     
-    printf("Strand specified: %d\n", this->strand);
+    printf("Strand specified (1 = +, 2 = -, 3 = both, 4 = unspecified): %d\n", this->strand);
     //If, after all of this, we have an invalid mode:
 }
