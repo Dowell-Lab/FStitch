@@ -35,7 +35,7 @@ void ParamWrapper::printUsage()
     printf("                                 **IMPORTANT: There can be no overlapping training regions.**\n\n");
     printf("Optional arguments:\n\n");
     printf("  -nt || --threads <integer>     This specifies the number of threads/processors to run on.\n");
-    printf("                                 Default = 8.\n\n");
+    printf("                                 Default = 1.\n\n");
     /* rp and rn function, but can very easily lead to a numnber of errors if the user inputs a bedGraph with both
      * positive and negative strand information. -r works fine and the strand the user wants to train on based on .bed file
      * should then specified using the argument --strand. NOTE: FStitch cannot train on both strands!!
@@ -112,7 +112,7 @@ void ParamWrapper::printUsage()
     printf("                                 should only report \"on\" regions, \"off\" regions, or both.\n");
     printf("                                 The default value is \"on\".\n");
     printf("  -nt || --threads <integer>     This specifies the number of processors to run on.\n");
-    printf("                                 The default value is 8.\n\n");
+    printf("                                 Default = 1\n\n");
     printf("==================================================================================================\n\n");
     printf("  -h --help                     Prints the help message\n\n");
     // Here again... these arguments don't really make sense in conjunction with the strand argument
@@ -194,7 +194,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     this->eRNA=false;
     this->verbose=false;
     this->chip=false;
-    this->numProcs=8;
+    this->numProcs=1;
     
     this->readFileSplit=false;
     this->secondReadFileName="";
