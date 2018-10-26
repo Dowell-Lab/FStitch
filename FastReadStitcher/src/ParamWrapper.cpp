@@ -3,37 +3,39 @@
 void ParamWrapper::printUsage()
 {
     //We're going to print this block the C way to save on time and pain:
+    printf("=================================================================================================\n");
     printf("Fast Stitch Reader (FStitch)\n");
-    printf("Annotation agnostic tool used to determine regions of active transcription using a\n");
-    printf("log-likelihood regression LLR adjusted hidden Markov Model (HMM).\n");
-    printf("\n");
-    printf("For more usage information, bug reporting, and questions see themake  GitHub repository @:\n");
-    printf("https://github.com/Dowell-Lab/FStitch\n");
-    printf("\n");
-    printf("Useage:                FStitch [module] [arguments]\n");
-    printf("\n");
-    printf("Where module is one of the following:\n");
-    printf("\n");
-    printf("train                  Trains FStitch on user specified regions in BED4 format.\n");
-    printf("                       NOTE: You can only train on data one strand (sense or anti-sense).\n");
-    printf("\n");
-    printf("Required arguments:\n");
-    printf("  -r <read bedgraph>   This specifies the file containing the histogram\n");
-    printf("                       of all reads as a BED4 file.\n");
-    printf("  -o <file.hmminfo>    This specifies output training parameters to be used in segment.\n");
-    printf("                       Must end with the .hmminfo extension.\n");
+    printf("=================================\n");
+    printf("A machine learning algorithm tool used to determine regions of active transcription in sequencing a\n");
+    printf("  data using log-likelihood regression LLR adjusted hidden Markov Model (HMM).\n");
+    printf("=================================================================================================\n");
+    printf("=================================================================================================\n\n");
+    printf("For more usage information, bug reporting, and questions see the FStitch GitHub repository\n");
+    printf("         @Dowell-Lab Organization: https://github.com/Dowell-Lab/FStitch\n");
+    printf("==================================================================================================\n\n");
+    printf("Usage:                          FStitch [train / segment] [arguments]\n\n");
+    printf("==================================================================================================\n\n");
+    printf("train                           Trains FStitch on user specified regions in BED4 format.\n");
+    printf("                                NOTE: You can only train using one strand (sense or anti-sense).\n\n");
+    printf("==================================================================================================\n\n");
+    printf("Required arguments:\n\n");
+    printf("  -b || --bedgraph <.bedGraph>   This specifies the bedGraph coverage file.\n");
+    printf("  -o || --ouput    <.hmminfo>    This specifies output training file to be used in segment.\n");
+    printf("                                 **Must end with the `.hmminfo` extension**.\n");
     // The option "both/." is still written into the code -- however this does not make sense and should be probably removed
-    printf("  --strand <+/->       This specifies whether or not training should be\n");
-    printf("                       performed on either the positive strand, the\n");
-    printf("                       negative strand, or both. The default is 'both'\n");
-    printf("  -t <file>            This specifies a training input file containing information\n");
-    printf("                       for BOTH on and off annotations. The input should be a BED3 file\n");
-    printf("                       (chr, start, stop) with labels, ie. it uses the following format:\n");
-    printf("                       chr [tab] start [tab] stop [tab] 1 / 0 (on / off).\n");
-    printf("Optional arguments:\n");
-    printf("  -np <integer>        This specifies the number of processors to run on.\n");
-    printf("                       The default value is 8.\n");
-    printf("  -h --help            Prints the help message\n");
+    printf("  -s || --strand   <+/->         This specifies whether or not training should be\n");
+    printf("                                 performed on either the positive strand, the\n");
+    printf("                                 negative strand, or both. The default is 'both'\n");
+    printf("  -t || -train     <BED4>        This specifies a training input file containing information for\n");
+    printf("                                 BOTH on and off annotations. The input should be a BED3 file\n");
+    printf("                                 (chr, start, stop) with an on/off label. For example:\n\n");
+    printf("                                 chr [tab] start [tab] stop [tab] 1 / 0 (on / off).\n");
+    printf("                                 chr1    2000    7500    1\n");
+    printf("                                 chr1    7501    11100   0\n");
+    printf("                                 **IMPORTANT: There can be no overlapping training regions.**\n\n");
+    printf("Optional arguments:\n\n");
+    printf("  -nt || --threads <integer>     This specifies the number of threads/processors to run on.\n");
+    printf("                                 Default = 8.\n\n");
     /* rp and rn function, but can very easily lead to a numnber of errors if the user inputs a bedGraph with both
      * positive and negative strand information. -r works fine and the strand the user wants to train on based on .bed file
      * should then specified using the argument --strand. NOTE: FStitch cannot train on both strands!!
@@ -88,33 +90,40 @@ void ParamWrapper::printUsage()
     //printf("                   chromosome[tab]start[tab]stop\n");
     //printf(" --off     <file>  This specifies the training data marking all \"off\"\n");
     //printf("                   regions. It follows the same format as --on.\n");
-    printf("\n");
-    printf("segment                 Annotates regions of predicted active transcription in BED9 format\n");
-    printf("                        using LLR and HMM parameters generated from the train module.\n");
+    printf("==================================================================================================\n\n");
+    printf("segment                         Annotates regions of predicted active transcription in BED9 format\n");
+    printf("                                using LLR and HMM parameters generated from the train module.\n\n");
+    printf("==================================================================================================\n\n");
     printf("\n");
     printf("Required arguments:\n");
+    printf("  -b || --bedgraph <.bedGraph>   This specifies the bedGraph coverage file.\n");
     // The option "both/." is still written into the code -- however this does not make sense and should be probably removed
-    printf("  --strand <+/->        This specifies whether to segment based on information\n");
-    printf("                        in the positive strand, the negative strand, or both.\n");
-    printf("                        This parameter should match what was used in training.\n");
-    printf("                        FStitch will attempt to automatically determine this\n");
-    printf("                        based on the input file provided, but this determination\n");
-    printf("                        may not always be accurate or desirable.\n");
-    printf("  --report <on/off/>    This specifies whether annotations generated by FStitch\n");
-    printf("                        should only report \"on\" regions, \"off\" regions, or both.\n");
-    printf("                        The default value is \"on\".\n");
-    printf("  -w <file>             This specifies the input weights generated using the 'train'\n");
-    printf("                        command.\n");
+    printf("  -s || --strand   <+/->         This specifies whether to segment based on information\n");
+    printf("                                 in the positive strand, the negative strand, or both.\n");
+    printf("                                 This parameter should match what was used in training.\n");
+    printf("                                 FStitch will attempt to automatically determine this\n");
+    printf("                                 based on the input file provided, but this determination\n");
+    printf("                                 may not always be accurate or desirable.\n");
+    printf("  -o || --output   <BED9>        This specifies the .bed output annotation file.\n");
+    printf("  -p || --params   <.hmminfo>    This specifies the HMM parmaters generated using the \n");
+    printf("                                 'train' module.\n\n");
+    printf("Optional arguments:\n");
+    printf("  -r || --report   <on/off/both> This specifies whether annotations generated by FStitch\n");
+    printf("                                 should only report \"on\" regions, \"off\" regions, or both.\n");
+    printf("                                 The default value is \"on\".\n");
+    printf("  -nt || --threads <integer>     This specifies the number of processors to run on.\n");
+    printf("                                 The default value is 8.\n\n");
+    printf("==================================================================================================\n\n");
+    printf("  -h --help                     Prints the help message\n\n");
+    // Here again... these arguments don't really make sense in conjunction with the strand argument
+    //printf("                        of all reads as a bed4 file.\n");
+    //printf("  -rp <pos read BED4>   If -r is not specified, then this specifies the file\n");
+    //printf("                        containing the histogram of positive reads as a BED4 file.\n");
+    //printf("  -rn <neg read BED4>   If -r is not specified, then this specifies the file\n");
+    //printf("                        containing the histogram of negative reads as a BED4 file.\n");
+    //printf("                        This parameter must be used in conjunction with -rp\n");
+    //printf("                        regardless of the strand used for training.\n");
 
-    printf("  -r <read bedgraph>    This specifies the file containing  the histogram\n");
-    printf("                        of all reads as a bed4 file.\n");
-    printf("  -rp <pos read BED4>   If -r is not specified, then this specifies the file\n");
-    printf("                        containing the histogram of positive reads as a BED4 file.\n");
-    printf("  -rn <neg read BED4>   If -r is not specified, then this specifies the file\n");
-    printf("                        containing the histogram of negative reads as a BED4 file.\n");
-    printf("                        This parameter must be used in conjunction with -rp\n");
-    printf("                        regardless of the strand used for training.\n");
-    printf("  -o <file>             This specifies the output annotation file.\n\n");
 }
 
 void ParamWrapper::dumpValues()
@@ -274,13 +283,13 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     {
         // These comparisons should be acceptable, since the C++ string library
         //overrides the == operator.
-        if(it->first=="-r")
+        if(it->first=="-b" || it->first=="--bedgraph")
         {
             this->readFileName=it->second;
             
             if(!fileExists(this->readFileName))
             {
-                printf("Error: combined reads file specified by -r does not exist.\n");
+                printf("Error: combined reads file specified by -b does not exist.\n");
                 this->exit=true;
             }
         }
@@ -330,17 +339,17 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             this->regularization=atoi(it->second.c_str());
         }
         
-        else if(it->first=="-o")
+        else if(it->first=="-o" || it->first=="--output")
         {
             this->outFileName=it->second;
         }
         
-        else if(it->first=="-np")
+        else if(it->first=="-nt" || it->first=="threads")
         {
             this->numProcs=atoi(it->second.c_str());
         }
         
-        else if(it->first=="--report")
+        else if(it->first=="--report" || it->first=="-r")
         {
             if(it->second=="on")
             {
@@ -394,7 +403,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             }
         }
         
-        else if(it->first=="-t")
+        else if(it->first=="-t" || it->first=="--train")
         {
             this->specialFileName=it->second;
             // This should take care of the special case in which this value is specified last.
@@ -403,7 +412,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             
             if(!fileExists(this->specialFileName))
             {
-                printf("Error: training input file specified with -t does not exist.\n");
+                printf("Error: training input file specified with -t || --train does not exist.\n");
                 this->exit=true;
             }
         }
@@ -456,14 +465,14 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             }
         }
         
-        else if(it->first=="-w")
+        else if(it->first=="-p" || it->first=="--params")
         {
             this->specialFileName=it->second;
             this->specialFileSplit=false;
             
             if(!fileExists(this->specialFileName))
             {
-                printf("Error: training weights file specified with -w does not exist.\n");
+                printf("Error: training weights file specified with -p || --params does not exist.\n");
                 this->exit=true;
             }
         }
