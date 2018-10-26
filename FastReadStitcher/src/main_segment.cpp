@@ -16,7 +16,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
     //=================================================================
     // General Parameters
     string BedGraphFile 		= p->readFileName;
-    string SecondBedGraphFile           = p->secondReadFileName;
+    string SecondBedGraphFile   = p->secondReadFileName;
     string TrainingOutFile 		= p->specialFileName;
     string outFile 				= p->outFileName;
     //Todo: add functionality for this!

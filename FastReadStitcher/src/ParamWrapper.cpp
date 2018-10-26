@@ -289,7 +289,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             
             if(!fileExists(this->readFileName))
             {
-                printf("Error: combined reads file specified by -b does not exist.\n");
+                printf("Error: coverage file specified by -b does not exist.\n");
                 this->exit=true;
             }
         }
@@ -302,7 +302,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             //Determine if the specified file exists:
             if(!fileExists(this->readFileName))
             {
-                printf("Error: positive reads file specified by -rp does not exist.\n");
+                printf("Error: positive coverage file specified by -rp does not exist.\n");
                 this->exit=true;
             }
         }
@@ -314,7 +314,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             
             if(!fileExists(this->secondReadFileName))
             {
-                printf("Error: negative reads file specified by -rn does not exist.\n");
+                printf("Error: negative coverage file specified by -rn does not exist.\n");
                 this->exit=true;
             }
         }
@@ -472,7 +472,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             
             if(!fileExists(this->specialFileName))
             {
-                printf("Error: training weights file specified with -p || --params does not exist.\n");
+                printf("Error: HMM parameters file specified with -p || --params does not exist.\n");
                 this->exit=true;
             }
         }
@@ -482,6 +482,6 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     this->params=paramMap;
     //That should probably do it.
     
-    printf("Strand specified (1 = +, 2 = -, 3 = both, 4 = unspecified): %d\n", this->strand);
+    printf("Strand specified (1 = Positive (+), 2 = Negative (-), 3 = both, 4 = unspecified): %d\n", this->strand);
     //If, after all of this, we have an invalid mode:
 }
