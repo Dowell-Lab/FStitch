@@ -230,6 +230,7 @@ int run_main_train_pwrapper(ParamWrapper *p)
         //=================================================================
         //GET DATA FROM TRAINING INTERVALS
         run_out RO = run_grabTrainingExamples(R, ContigData, ChIP);
+        //TODO : Need to determine whether or not this actually works...
         if(!RO.X.size() || !RO.Y.size())
         {
             cout<<"It appears that the training file provided was not created for positive strand data. Training on negative strand only..."<<endl;
