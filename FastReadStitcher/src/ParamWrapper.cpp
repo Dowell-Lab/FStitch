@@ -20,7 +20,8 @@ void ParamWrapper::printUsage()
     printf("Required arguments:\n");
     printf("  -r <read bedgraph>   This specifies the file containing the histogram\n");
     printf("                       of all reads as a BED4 file.\n");
-    printf("  -o <output file>     This specifies the file to store.\n");
+    printf("  -o <file.hmminfo>    This specifies output training parameters to be used in segment.\n");
+    printf("                       Must end with the .hmminfo extension.\n");
     // The option "both/." is still written into the code -- however this does not make sense and should be probably removed
     printf("  --strand <+/->       This specifies whether or not training should be\n");
     printf("                       performed on either the positive strand, the\n");
@@ -32,6 +33,7 @@ void ParamWrapper::printUsage()
     printf("Optional arguments:\n");
     printf("  -np <integer>        This specifies the number of processors to run on.\n");
     printf("                       The default value is 8.\n");
+    printf("  -h --help            Prints the help message\n");
     /* rp and rn function, but can very easily lead to a numnber of errors if the user inputs a bedGraph with both
      * positive and negative strand information. -r works fine and the strand the user wants to train on based on .bed file
      * should then specified using the argument --strand. NOTE: FStitch cannot train on both strands!!
@@ -91,6 +93,7 @@ void ParamWrapper::printUsage()
     printf("                        using LLR and HMM parameters generated from the train module.\n");
     printf("\n");
     printf("Required arguments:\n");
+    // The option "both/." is still written into the code -- however this does not make sense and should be probably removed
     printf("  --strand <+/->        This specifies whether to segment based on information\n");
     printf("                        in the positive strand, the negative strand, or both.\n");
     printf("                        This parameter should match what was used in training.\n");
@@ -364,7 +367,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             }
         }
         
-        else if(it->first=="--strand")
+        else if(it->first=="--strand" || it->first=="-s")
         {
             if(it->second=="+")
             {
