@@ -1,10 +1,14 @@
-# FStitch
-Below is the README for compiling, running and understanding Fast Read Stitcher (FStitch). This software is written primarily for scientists looking to identify putative nascent transcripts _de novo_ in Global Run-On sequencing<sup>1</sup>. However, users may also find this package useful as a ChIP-seq peak caller.
+# Fast Read Stitcher (FStitch)
+Fast Stitch Reader (FStitch) rapidly processes read coverage files into contigs of actie and inactive regions of transcription with its intended being primarily for refining annotations in nascent transcription data (GRO-seq, PRO-seq, NET-seq, etc.)<sup>1</sup>. For example, with FStitch, you can:
 
-![Alt text](https://github.com/azofeifa/FStitch/blob/master/images/IGV_SNAP.png)
+* Discover unannotated large regions of active transcription for enahncer and other non-coding RNA discovery
+* Better annotate 5' and 3' ends of genes for differential transcription analysis and Tfit RNAPII modeling
+* Filter regions of active transcriptional activity for downstream application (i.e. Tfit bidirectional predictions for enhancer identification)
+* Differentiate and analyze genome-wide coverage of active transcription between treatment types
 
+![Alt text](images/IGV_SNAP.png)
 
-Above: IGV snap shot displays the classifications given by FStitch. Color ‘green’ is read data considered inactive noise. Color ‘blue’ is a putative nascent transcript on the forward strand and ‘red’ on the reverse strand. We identify both genes undergoing nascent transcription and many regions that are unannotated, characteristic of enhancer elements. 
+Above: IGV snap shot displays the classifications given by FStitch. Color ‘green’ indicates regions of inactive transcription (signal is not singificantly above background "noise"). Color ‘blue’ represents active transcription on the forward (pos) strand and ‘red’ on the reverse (neg) strand.
 
 ## Brief Overview of FStitch Commands
 Here are the minimal commands needed to run FStitch from start to finish; for greater detail on usage and file types see below. 
