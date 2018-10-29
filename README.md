@@ -102,13 +102,13 @@ chr    start    end     label
 13     21000    23000   1
 ```
 
-The segments do not need to be in any order and can be from any chromosome, however **each region must not overlap any other segment** as this will cause confusion in the learning algorithms for the LR classifier. 
+The segments do not need to be in any order and can be from any chromosome, however ***each region must not overlap any other segment*** as this will cause confusion in the learning algorithms for the LR classifier. This makes sense -- calling a region as both "ON" and "OFF" in binary world is confusing. 
 
 **Very important**: If FStitch is being used on stranded data, the bedGraph file used in the `train` must correspond to the strand indicated in the *TrainingFile.bed*. For example, if the strand in the training file comes from the forward strand but the user supplies a bedGraph file that is on the reverse strand, then learned parameters will not be accurate. 
 
 Running FStitch train is simple once you have your coverage data in the correct format and have created the training file above. The following is a description of arguments:
 
-__**Required Arguments**__
+**Required Arguments**
 
 |Flag|Type|Desription|
 |----|----|----------|
@@ -117,7 +117,7 @@ __**Required Arguments**__
 |-t  --train   | \</path/to/TrainingFile.bed>          | Training File from above (BED4 format)
 |-o  --output  | \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
 
-__**Optional Arguments**__
+**Optional Arguments**
 
 |Flag|Type|Desription|
 |----|----|----------|
@@ -162,7 +162,7 @@ For regions you annotate as "OFF", be sure to include regions that have some bac
 ## FStitch segment
 FStitch `segment` uses the parameters obtained from `train` (from above, \</path/to/Parameters.hmminfo>) as input, as well as the original bedGraph file. A description of the arguments are given below.
 
-__*Required Arguments**__
+**Required Arguments**
 
 |Flag|Type|Desription|
 |----|----|----------|
@@ -171,8 +171,10 @@ __*Required Arguments**__
 |-p  --params       | \</path/to/Parameters.hmminfo>        |Training Parameter Out File from FStitch train call
 |-o  --output       | \</path/to/segmentFile.bed>           |Your output segmentFile.bed (BED9 format)
 
-__**Optional Arguments**__
+**Optional Arguments**__
 
+|Flag|Type|Desription|
+|----|----|----------|
 |-n  --threads      | number                                |number of processors, default = 1
 
 An example of the command is therefore:
