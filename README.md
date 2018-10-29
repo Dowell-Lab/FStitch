@@ -1,5 +1,5 @@
 # Fast Read Stitcher (FStitch)
-Fast Stitch Reader (FStitch) rapidly processes read coverage files into contigs of actie and inactive regions of transcription with its intended being primarily for refining annotations in nascent transcription data (GRO-seq, PRO-seq, NET-seq, etc.)<sup>1</sup>. For example, with FStitch, you can:
+Fast Stitch Reader (FStitch) rapidly processes read coverage files into contigs of actie and inactive regions of transcription with its intended being primarily for refining annotations in nascent transcription data (GRO-seq, PRO-seq, NET-seq, etc.)<sup>1</sup>. Using FStitch, you can:
 
 * Discover unannotated large regions of active transcription for enahncer and other non-coding RNA discovery
 * Better annotate 5' and 3' ends of genes for differential transcription analysis and Tfit RNAPII modeling
@@ -8,45 +8,36 @@ Fast Stitch Reader (FStitch) rapidly processes read coverage files into contigs 
 
 ![Alt text](images/IGV_SNAP.png)
 
-Above: IGV snap shot displays the classifications given by FStitch. Color ‘green’ indicates regions of inactive transcription (signal is not singificantly above background "noise"). Color ‘blue’ represents active transcription on the forward (pos) strand and ‘red’ on the reverse (neg) strand.
+*Integrative Genomics Viewer (IGV) snap shot demonstrates the annotations obtained using FStitch. Color ‘green’ indicates regions of inactive transcription (signal is not singificantly above background "noise"). Color ‘blue’ represents active transcription on the forward (pos) strand and ‘red’ on the reverse (neg) strand.*
 
-## Brief Overview of FStitch Commands
+## General Usage
 Here are the minimal commands needed to run FStitch from start to finish; for greater detail on usage and file types see below. 
 ```
-$ FStitch train -i </path/to/BedGraphFile> -j </path/to/TrainingFile>  -o </path/to/Parameters.out>
+$ FStitch train -b </path/to/BedGraphFile> -s (+/-) -t </path/to/TrainingFile>  -o </path/to/Parameters.hmminfo>
 
-$ FStitch segment -i </path/to/forward/BedGraphFile> -j </path/to/reverse/BedGraphFile> -k </path/to/Parameters.out> -o </path/to/Classifications.bed>
+$ FStitch segment -b </path/to/forward/BedGraphFile> -s (+/-) -p </path/to/Parameters.hmminfo> -o </path/to/Annotations.bed>
 ```
 
 ## System Requirements
-FStitch is written in the C++ programming language, with C++11 support and uses OpenMP<sup>4</sup> to parallelize portions of the program.  With this in mind, users will need to have a GCC compilers later than version 4.7 to compile and run FStitch. For mac users, downloading the latest Xcode will update the GCC compiler need be. To check you compiler version, 
+FStitch is written in the C++ programming language, with C++11 support and uses OpenMP<sup>4</sup> to support multi-threading.  With this in mind, users will need to have a GCC compilers later than version 4.7 and < 7.1.0 to compile and run FStitch. To check you compiler version, 
 ```
 $ gcc —-version
 $ g++ —-version
 ```
-Note, for those running FStitch on a compute cluster, commonly you will need to perform a ‘module load gcc<version>’ to compile FStitch. Please ask your sys admins for questions on module load behavior. 
-##Setup
+Note, for those running FStitch on a compute cluster, commonly you will need to perform a ‘module load gcc<version>’ to compile FStitch. Please ask your sys admins for questions on module load behavior.
+    
+### Setup
+
 Download the FastReadStitcher/ directory from this url or clone to your local machine. If your compiler is up to date, you can compile FStitch by moving into the FastReadStitcher/ directory and running 
 ```
 $ sh setup.sh
 =========================================
 Sucessfully Compiled
 ```
-In short, the setup.sh just runs “make” in the src/ directory. If everything compiles, you should see "Sucessfully Compiled" at the end.
+In short, the setup.sh just runs “make clean” and "make" in the src/ directory. If everything compiles, you should see "Sucessfully Compiled" at the end. Importantly, you will now see the executable “FStitch” in the src directory.
 
-Importantly, you will now see the executable “FStitch” in the src directory. This will be the first command used for all the following computations. 
-##Input File
-The fast read stitcher program attempts to classify and identify contiguous regions of read coverage that are showing strong signal over background mapping noise. With this in mind, FStitch requires a file where for each genomic position, the number of reads mapping to that position are provided. This file is commonly known as a BedGraph file<sup>2</sup>. Briefly a BedGraph file consists of four columns: chromosome, start genomic coordinate, stop genomic coordinate, coverage. Below is an example:
-  
-![Alt text](https://github.com/azofeifa/FStitch/blob/master/images/BedGraphScreenShot.png)
+## Running FStitch
 
-Note: FStitch does not accept bedgraph files where 0 coverage values are reported and if the data is stranded (like GRO-seq) then there should be one BedGraph file corresponding to the positive strand and the negative strand . In short, you can convert your bam files to a bed graph file format using the _bedtools_<sup>3</sup> command:
-```
-$ bedtools genomecov -ibam <bamfile> -g <genome_file> -bg -s “+/-“
-```
-We note that specifying five prime (-5) in the “genomecov” may allow for cleaner annotations however unspecified five prime bed works just fine as well. 
-
-##Running FStitch
 The Fast Read Stitcher program is divided into two main commands: “train” and “segment”. “train” estimates the necessary probabilistic model parameters and “segment” pulls the output from “train” and classifies the entire genome into _active_ and _inactive_ regions of regions of high density read coverage. 
 
 Note that a quick reference to the below parameters and software usage can be supplied by 
@@ -55,6 +46,25 @@ $/src/FStitch -h
 
 $/src/FStitch --help
 ```
+
+### Coverage File (bedGraph) Format Requirements
+
+The provided coverage file must be in bedGraph format (See the UCSC description<sup>2<sup>) which is a BED4 file where the fourth column represents coverage over the annotated start/end positions. For example:
+    
+chr    start    end    coverage
+1      0        100     3
+1      107      117     1
+
+***IMPORTANT***
+Your .bedGraph file **should not contain 0 values** and should be **non-normalized**. FStitch performs an internal normalization.
+
+There are two main tools for generating bedGraph coverage files from BAM files, deepTools and BEDTools. By default, deepTools bamCoverage will have discrete bins (50bp) and will therefore calculate average coverage over regions, rather that contigs of regions with equal read coverage, and "smooth" the data. While this is not a problem for visualizaiton at smaller bins, it will conflict with normalization. Therefore, we recommend using default BEDtools<sup>3<sup> genomecov settings:
+    
+```
+$ bedtools genomecov -ibam <file.bam> -g <file.bedGraph> -bg -s “+/-“
+```
+
+We note that specifying five prime (-5 argument) in the “genomecov” may allow for cleaner annotations however unspecified five prime bed works just fine as well. 
 
 
 ## FStitch train
