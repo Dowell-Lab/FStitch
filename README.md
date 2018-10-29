@@ -93,12 +93,14 @@ In short, FStitch requires regions the user considers active transcription and r
 
 These regions are provided to FStitch using a specific file format with four columns separated by tabs: chromosome, genomic coordinate start, genomic coordinate stop, (0 if “noise” or 1 “signal”). An example is given below:
 
+```
 ~/TrainingFile.bed
 chr    start    end     label
 1      1000     6000    1 
 1      6001     8250    0
 13     13500    19000   0
 13     21000    23000   1
+```
 
 The segments do not need to be in any order and can be from any chromosome, however **each region must not overlap any other segment** as this will cause confusion in the learning algorithms for the LR classifier. 
 
@@ -107,6 +109,7 @@ The segments do not need to be in any order and can be from any chromosome, howe
 Running FStitch train is simple once you have your coverage data in the correct format and have created the training file above. The following is a description of arguments:
 
 __**Required Arguments**__
+
 |Flag|Type|Desription|
 |----|----|----------|
 |-b  --bedgraph| \</path/to/BedGraphFile>              | bedGraph File from above
@@ -115,6 +118,7 @@ __**Required Arguments**__
 |-o  --output  | \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
 
 __**Optional Arguments**__
+
 |Flag|Type|Desription|
 |----|----|----------|
 |-n  --threads | \<integer>                            | number of processors, default 1
@@ -159,6 +163,7 @@ For regions you annotate as "OFF", be sure to include regions that have some bac
 FStitch `segment` uses the parameters obtained from `train` (from above, \</path/to/Parameters.hmminfo>) as input, as well as the original bedGraph file. A description of the arguments are given below.
 
 __*Required Arguments**__
+
 |Flag|Type|Desription|
 |----|----|----------|
 |-b  --bedgraph     | \</path/to/sample.bedGraph>           |BedGraph File Format from above
@@ -167,7 +172,7 @@ __*Required Arguments**__
 |-o  --output       | \</path/to/segmentFile.bed>           |Your output segmentFile.bed (BED9 format)
 
 __**Optional Arguments**__
--------------------
+
 |-n  --threads      | number                                |number of processors, default = 1
 
 An example of the command is therefore:
