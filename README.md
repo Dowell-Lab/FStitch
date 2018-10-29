@@ -90,11 +90,12 @@ Running FStitch train is simple once you have your data in the correct format an
 
 |Flag|Type|Desription|
 |----|----|----------|
-|-b --bedgraph| \</path/to/BedGraphFile> | bedGraph File from above
-|-s --strand| \<+/-> | Specifes which strand (pos/neg) you trained on \n **NOTE:You can only train on ONE strand!**
-|-t --train| \</path/to/TrainingFile.bed> | Training File from above (BED4 format)
-|-o --output| \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
-|-n --threads| \<integer> | number of processors, default 1
+|Required Arguments|
+|-b --bedgraph| \</path/to/BedGraphFile>              | bedGraph File from above
+|-s --strand  | \<+/->                                | Specifes which strand (pos/neg) you trained on **NOTE: You can only train on ONE strand!**
+|-t --train   | \</path/to/TrainingFile.bed>          | Training File from above (BED4 format)
+|-o --output  | \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
+|-n --threads | \<integer>                            | number of processors, default 1
 
 Putting this together
 ```
