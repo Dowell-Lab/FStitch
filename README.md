@@ -171,7 +171,7 @@ FStitch `segment` uses the parameters obtained from `train` (from above, \</path
 |-p  --params       | \</path/to/Parameters.hmminfo>        |Training Parameter Out File from FStitch train call
 |-o  --output       | \</path/to/segmentFile.bed>           |Your output segmentFile.bed (BED9 format)
 
-**Optional Arguments**__
+**Optional Arguments**
 
 |Flag|Type|Desription|
 |----|----|----------|
