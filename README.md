@@ -78,6 +78,7 @@ In short, FStitch requires regions the user considers active transcription and r
 
 These regions are provided to FStitch using a specific file format with four columns separated by tabs: chromosome, genomic coordinate start, genomic coordinate stop, (0 if “noise” or 1 “signal”). An example is given below:
 
+~/TrainingFile.bed
 chr    start    end     label
 1      1000     6000    1 
 1      6001     8250    0
@@ -86,32 +87,34 @@ chr    start    end     label
 
 The segments do not need to be in any order and can be from any chromosome, however **each region must not overlap any other segment** as this will cause confusion in the learning algorithms for the LR classifier. 
 
+**Very important**: If FStitch is being used on stranded data, the bedGraph file used in the `train` must correspond to the strand indicated in the *TrainingFile.bed*. For example, if the strand in the training file comes from the forward strand but the user supplies a bedGraph file that is on the reverse strand, then learned parameters will not be accurate. 
+
 Running FStitch train is simple once you have your coverage data in the correct format and have created the training file above. The following is a description of arguments:
 
 **Required Arguments**
+---------------------
 
 |Flag|Type|Desription|
 |----|----|----------|
-|-b --bedgraph| \</path/to/BedGraphFile>              | bedGraph File from above
-|-s --strand  | \<+/->                                | Specifes which strand (pos/neg) you trained on <br> **NOTE: You can only train on ONE strand!**</br>
-|-t --train   | \</path/to/TrainingFile.bed>          | Training File from above (BED4 format)
-|-o --output  | \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
+|-b  --bedgraph| \</path/to/BedGraphFile>              | bedGraph File from above
+|-s  --strand  | \<+/->                                | Specifes which strand (pos/neg) you trained on <br> **NOTE: You can only train on ONE strand!**</br>
+|-t  --train   | \</path/to/TrainingFile.bed>          | Training File from above (BED4 format)
+|-o  --output  | \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
 
 **Optional Arguments**
+---------------------
 
 |Flag|Type|Desription|
 |----|----|----------|
-|-n --threads | \<integer>                            | number of processors, default 1
+|-n  --threads | \<integer>                            | number of processors, default 1
 
-Putting this together
+An example command is therefore:
 ```
-$ FStitch train -b </path/to/BedGraphFile> -s (+/-) -t </path/to/TrainingFile.bed>  -o </path/to/Parameters.hmminfo>
+$ FStitch train -b </path/to/BedGraphFile.bedGraph> -s (+/-) -t </path/to/TrainingFile.bed>  -o </path/to/Parameters.hmminfo>
 ```
-This will produce the a fie called anyName.out that will store the learned parameters for the logistic regression and HMM transition parameters need in “FStitch segment”. Below is one such output for anyName.out
+The output will be a *Parameters.hmminfo* file that will store the learned parameters for the LR and the HMM transition parameters needed in `segment`. Here's an example of what the training file *Parameters.hmminfo* should look like.
 
-![Alt text](https://github.com/azofeifa/FStitch/blob/master/images/ParameterOutFile.png)
-
-Very important: If FStitch is being used on stranded data, the BedGraph file used in the “FStitch train” command must correspond to the strand indicated in the TrainingFile. For example, if the strand in the training file comes from the forward strand but the user supplies a BedGraph file that is on the reverse strand, then learned parameters will not be accurate. 
+![Alt text](images/ParameterOutFile.png)
 
 ### Training Tips
 
