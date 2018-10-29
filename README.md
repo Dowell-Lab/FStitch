@@ -54,10 +54,12 @@ $/src/FStitch --help
 ### Coverage File (bedGraph) Format Requirements
 
 The provided coverage file must be in bedGraph format (See the UCSC description<sup>2</sup>) which is a BED4 file where the fourth column represents coverage over the annotated start/end positions. For example:
-    
+
+```
 chr    start    end    coverage
 1      0        100     3
 1      107      117     1
+```
 
 ***IMPORTANT***
 
