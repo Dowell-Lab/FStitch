@@ -49,7 +49,7 @@ $/src/FStitch --help
 
 ### Coverage File (bedGraph) Format Requirements
 
-The provided coverage file must be in bedGraph format (See the UCSC description<sup>2<sup>) which is a BED4 file where the fourth column represents coverage over the annotated start/end positions. For example:
+The provided coverage file must be in bedGraph format (See the UCSC description<sup>2</sup>) which is a BED4 file where the fourth column represents coverage over the annotated start/end positions. For example:
     
 chr    start    end    coverage
 1      0        100     3
@@ -58,7 +58,7 @@ chr    start    end    coverage
 ***IMPORTANT***
 Your .bedGraph file **should not contain 0 values** and should be **non-normalized**. FStitch performs an internal normalization.
 
-There are two main tools for generating bedGraph coverage files from BAM files, deepTools and BEDTools. By default, deepTools bamCoverage will have discrete bins (50bp) and will therefore calculate average coverage over regions, rather that contigs of regions with equal read coverage, and "smooth" the data. While this is not a problem for visualizaiton at smaller bins, it will conflict with normalization. Therefore, we recommend using default BEDtools<sup>3<sup> genomecov settings:
+There are two main tools for generating bedGraph coverage files from BAM files, deepTools and BEDTools. By default, deepTools bamCoverage will have discrete bins (50bp) and will therefore calculate average coverage over regions, rather that contigs of regions with equal read coverage, and "smooth" the data. While this is not a problem for visualizaiton at smaller bins, it will conflict with normalization. Therefore, we recommend using default BEDtools<sup>3</sup> genomecov settings:
     
 ```
 $ bedtools genomecov -ibam <file.bam> -g <file.bedGraph> -bg -s “+/-“
