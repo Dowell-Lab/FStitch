@@ -78,7 +78,11 @@ In short, FStitch requires regions the user considers active transcription and r
 
 These regions are provided to FStitch using a specific file format with four columns separated by tabs: chromosome, genomic coordinate start, genomic coordinate stop, (0 if “noise” or 1 “signal”). An example is given below:
 
-![Alt text](images/TrainingFileImage2.png)
+chr    start    end     label
+1      1000     6000    1 
+1      6001     8250    0
+13     13500    19000   0
+13     21000    23000   1
 
 The segments do not need to be in any order and can be from any chromosome, however **each region must not overlap any other segment** as this will cause confusion in the learning algorithms for the LR classifier. 
 
@@ -87,7 +91,7 @@ Running FStitch train is simple once you have your data in the correct format an
 |Flag|Type|Desription|
 |----|----|----------|
 |-b --bedgraph| \</path/to/BedGraphFile> | bedGraph File from above
-|-s --strand| \<+/-> | bedGraph File from above
+|-s --strand| \<+/-> | Specifes which strand (pos/neg) you trained on **You can only train on ONE strand!**
 |-t --train| \</path/to/TrainingFile.bed> | Training File from above (BED4 format)
 |-o --output| \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
 |-n --threads| \<integer> | number of processors, default 1
