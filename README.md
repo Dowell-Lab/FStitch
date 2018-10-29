@@ -13,9 +13,9 @@ Fast Stitch Reader (FStitch) rapidly processes read coverage files into contigs 
 ## General Usage
 Here are the minimal commands needed to run FStitch from start to finish; for greater detail on usage and file types see below. 
 ```
-$ FStitch train -b </path/to/BedGraphFile> -s (+/-) -t </path/to/TrainingFile>  -o </path/to/Parameters.hmminfo>
+$ FStitch train -b </path/to/sample.bedGraph> -s (+/-) -t </path/to/TrainingFile>  -o </path/to/Parameters.hmminfo>
 
-$ FStitch segment -b </path/to/forward/BedGraphFile> -s (+/-) -p </path/to/Parameters.hmminfo> -o </path/to/Annotations.bed>
+$ FStitch segment -b </path/to/sample.bedGraph> -s (+/-) -p </path/to/Parameters.hmminfo> -o </path/to/segmentFile.bed>
 ```
 
 ## System Requirements
@@ -68,6 +68,21 @@ $ bedtools genomecov -ibam <file.bam> -g <file.bedGraph> -bg -s <+/->
 
 Specifying five prime (-5 argument) in the “genomecov” may allow for cleaner annotations however unspecified five prime bed works just fine as well. 
 
+Often times, it is useful to merge the positive and negative strands for conversion to TDF if you are using IGV as your genome browser so you can view both strands on one track. While FStitch will only train and segment one strand at a time, you can provide this concatenated pos/neg bedGraph file as long as it is formatted with appropriate integers in the fourth column (i.e. -\<integer> for a negative strand coverage region). FStitch will remove regions based on which ever stand you specify in the -s/--strand argument. An example of how to generate an appropriately formatted concatenated pos/neg bedGraph file is as follows:
+
+```
+awk 'BEGIN{FS=OFS="\t"} {$4=-$4}1' ROOTNAME.neg.bedGraph \
+ > ROOTNAME.neg.formatted.bedGraph
+
+cat \
+ ROOTNAME.pos.bedGraph \
+ <(grep -v '^@' ROOTNAME.neg.formatted.bedGraph) \
+ | sortBed \
+ > ROOTNAME.sort.cat.bedGraph
+```
+
+Note that the last command, sortBed, will require BEDTools. This is not required for FStitch, but is good practice as it will process quicker and is required for conversion to TDF if so desired.
+
 
 ## FStitch train
 FStitch uses two probabilistic models to classify regions of high read density into "active" transcriptional regions: Logistic Regression (LR) and a Hidden Markov Model (HMM). The LR coefficients are estimated via a user defined label training file. Because we are classifying regions as signal or noise, FStitch requires regions of the genome that show characteristic transcription or high read dense profiles and regions of the genome that display noise or not a profile of nascent transcription or a read dense region. With this information, FStitch trains a logistic regression classifier and then couples it to a HMM. The transition parameters for the Markov model are learned via the Baum Welch algorithm and thus do not require user labeled training data.  
@@ -91,8 +106,8 @@ The segments do not need to be in any order and can be from any chromosome, howe
 
 Running FStitch train is simple once you have your coverage data in the correct format and have created the training file above. The following is a description of arguments:
 
-**Required Arguments**
----------------------
+Required Arguments
+-------------------
 
 |Flag|Type|Desription|
 |----|----|----------|
@@ -101,24 +116,39 @@ Running FStitch train is simple once you have your coverage data in the correct 
 |-t  --train   | \</path/to/TrainingFile.bed>          | Training File from above (BED4 format)
 |-o  --output  | \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
 
-**Optional Arguments**
----------------------
+Optional Arguments
+-------------------
 
 |Flag|Type|Desription|
 |----|----|----------|
 |-n  --threads | \<integer>                            | number of processors, default 1
 
 An example command is therefore:
-```
-$ FStitch train -b </path/to/BedGraphFile.bedGraph> -s (+/-) -t </path/to/TrainingFile.bed>  -o </path/to/Parameters.hmminfo>
-```
+
+    $ FStitch train -b </path/to/BedGraphFile.bedGraph> -s (+/-) -t </path/to/TrainingFile.bed> -o </path/to/Parameters.hmminfo>
+
 The output will be a *Parameters.hmminfo* file that will store the learned parameters for the LR and the HMM transition parameters needed in `segment`. Here's an example of what the training file *Parameters.hmminfo* should look like.
 
-![Alt text](images/ParameterOutFile.png)
+```
+####################################################
+#                  Fast Read Stitcher
+#Parameter Estimation Output
+#Command Line                    :~/FastReadStitcher/src/FStitch train -s + -b bedgraphs/SRR000001.bedGraph -t fstitchTrain.bed -o Dowell2018.hmminfo
+#Date/Time                       :2018-10-26 12:13:16
+#Learning Rate                   :0.400000
+#Max Iterations                  :100.000000
+#Convergence Threshold           :0.001000
+#####################################################
+Converged                        :True
+Final LogLikelihood              :-3530.215862
+Logistic Regression Coefficients :1.013783,0.000000,-0.001297,186.575328
+HMM Transition Parameter         :0.933049,0.066951,0.021232,0.978768
+~
+```
 
 ### Training Tips
 
-Annotating regions of "active" and "inactive" transcription ("ON" and "OFF") and generating a desirable training file typically requires a little bit of trial-and-error. That said, the following are some tips to expedite the learning process.
+Annotating regions of "active/singal" and "inactive/noise" transcription ("ON" and "OFF") and generating a desirable training file typically requires a little bit of trial-and-error. That said, the following are some tips to expedite the learning process.
 
 ##### Avoid "overtraining"
 If your aim is to segment your sample into long contigs (e.g. for improving 5' and 3' gene annotation), it is best **not to overtrain**, or in other words provide too many training examples. If you provide >40 regions, you will get noticably larger .bed output files as a result of increasing the number of segments, or "contigs". In other words, the more regions you prodide, the more you simply obtain regions where coverage = 0 is "OFF" and any coverage > 0 is "ON". We don't need FStitch to give us this information.
@@ -130,22 +160,30 @@ If you annotate training regions that are <1000bp, there will likely not be enou
 For regions you annotate as "OFF", be sure to include regions that have some background signal, or "noise". Remember, you will be training using your bedGraph file, so if you pick regions that have "0" coverage and you followed the instructions above for coverage file formatting, you will not be providing FStitch any regions to assess. FStitch will try to account for data "gapiness" or the distance between read coverage regions, and therefore the more "background" (think of ChIP input controls) you can provide it, the better FStich will be able to distinguish the "noise" from the "activity".
 
 ## FStitch segment
-FStitch segment follows from FStitch train and takes as input the TrainingParameterOutFile (from above, \</path/to/anyName.out>) as input, along with the original BedGraph file. A description of the parameters for FStitch segment are given below
+FStitch `segment` uses the parameters obtained from `train` (from above, \</path/to/Parameters.hmminfo>) as input, as well as the original bedGraph file. A description of the arguments are given below.
 
+Required Arguments
+-------------------
 |Flag|Type|Desription|
 |----|----|----------|
-| -i	| \</path/to/BedGraphFile> |BedGraph File Format from above
-| -k 	| \</path/to/anyName.out> |Training Parameter Out File from FStitch train call
-| -o	| \</path/to/anyName.bed> |A bed file that gives the regions considered active nascent transcription (or ChIP-seq peak) and noise
-| -np 	| number |number of processors, default 8
+|-b  --bedgraph     | \</path/to/sample.bedGraph>           |BedGraph File Format from above
+|-s  --strand       | \<+/->                                |Specifes which strand (pos/neg) you wish to segment <br> **NOTE: You can only train on ONE strand!**</br>
+|-p  --params       | \</path/to/Parameters.hmminfo>        |Training Parameter Out File from FStitch train call
+|-o  --output       | \</path/to/segmentFile.bed>           |Your output segmentFile.bed (BED9 format)
 
-Putting this together
-```
-$ /src/FStitch segment -i \</path/to/BedGraphFile\> -j \</path/to/anyName.out> -o \</path/to/anyName.bed> 
-```
-This will produce a file called anyName.bed, and can be imported into any genome browser)
+Optional Arguments
+-------------------
+|-n  --threads      | number                                |number of processors, default = 1
 
-Note you can use your parameter out file from FStitch train (i.e. anyName.out) to segment other datasets. In fact, using the same parameter out file will gurantee consistency and comparibility across datasets, so this is encouraged.
+An example of the command is therefore:
+
+    $ FStitch segment -b </path/to/bedGraphFile> -s (+/-) -p </path/to/Parameters.hmminfo> -o </path/to/segmentFile.bed>
+
+This will produce a file called segmentFile.bed, and can be imported into any genome browser)
+
+Note you can use your parameter out file from FStitch train (i.e. Parameters.hmminfo) to segment other datasets in the same series of samples from an experiment. In fact, using the same parameter out file will gurantee consistency and comparibility across datasets, so this is encouraged. 
+
+*That said*, remember that FStitch attempts to discern "noise" from "signal". Therefore, if you have a sample that has low complexity (i.e. it is difficult to distinguish signal from noise), you may either want to train using other samples, perform deeper sequencing on this sample (i.e. obtain a technical replicate -- this may be especially necessary depending on your downstream analysis interests), or train this sample separately (reduces strength of a statistical comparison between samples). As such, sample of comperable complexity and read depth will typically behave the best in FStitch.
 
 ## Cite
 If you find the Fast Read Stitcher program useful for your research please cite:
