@@ -13,6 +13,8 @@ static char *getDtTm (char *buff) {
     strftime (buff, DTTMSZ, DTTMFMT, localtime (&t));
     return buff;
 }
+
+//Commented out ChIP data -- this command is not currently functioning as expected, so fix it first and add this in later
 void writeTrainingFile(string OUT,BW_OUT BWO, double alpha, double cm, double ct, bool ChIP, string commandline){
 	ofstream FHW;
 	FHW.open(OUT);
@@ -21,12 +23,12 @@ void writeTrainingFile(string OUT,BW_OUT BWO, double alpha, double cm, double ct
 		FHW<<"#####################################################"<<endl;
 		FHW<<"#                  Fast Read Stitcher"<<endl;
 		FHW<<"#Parameter Estimation Output"<<endl;
-                FHW<<"#Command Line                    :"<<commandline<<endl;
+		FHW<<"#Command Line                    :"<<commandline<<endl;
 		FHW<<"#Date/Time                       :"<<getDtTm(buff)<<endl;
 		FHW<<"#Learning Rate                   :"<<to_string(alpha)<<endl;
 		FHW<<"#Max Iterations                  :"<<to_string(cm)<<endl;
 		FHW<<"#Convergence Threshold           :"<<to_string(ct)<<endl;
-		FHW<<"#ChIP Data                       :"<<to_string(ChIP)<<endl;
+//		FHW<<"#ChIP Data                       :"<<to_string(ChIP)<<endl;
 		FHW<<"#####################################################"<<endl;
 		string weights= "";
 		string transitions = "";
