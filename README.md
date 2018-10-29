@@ -6,6 +6,8 @@ Fast Stitch Reader (FStitch) rapidly processes read coverage files into contigs 
 * Filter regions of active transcriptional activity for downstream application (i.e. Tfit bidirectional predictions for enhancer identification)
 * Differentiate and analyze genome-wide coverage of active transcription between treatment types
 
+The following is an example of FStitch output:
+
 ![Alt text](images/IGV_SNAP.png)
 
 *Integrative Genomics Viewer (IGV) snap shot demonstrates the annotations obtained using FStitch. Color ‘green’ indicates regions of inactive transcription (signal is not singificantly above background "noise"). Color ‘blue’ represents active transcription on the forward (pos) strand and ‘red’ on the reverse (neg) strand.*
