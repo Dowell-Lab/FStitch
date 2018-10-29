@@ -86,7 +86,8 @@ chr    start    end     label
 
 The segments do not need to be in any order and can be from any chromosome, however **each region must not overlap any other segment** as this will cause confusion in the learning algorithms for the LR classifier. 
 
-Running FStitch train is simple once you have your data in the correct format and have created the training file above. A description of the parameters for FStitch train are given below
+Running FStitch train is simple once you have your coverage data in the correct format and have created the training file above. The following is a description of arguments:
+
 |Required Arguments|
 |Flag|Type|Desription|
 |----|----|----------|
