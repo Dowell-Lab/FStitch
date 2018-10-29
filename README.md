@@ -88,13 +88,19 @@ The segments do not need to be in any order and can be from any chromosome, howe
 
 Running FStitch train is simple once you have your coverage data in the correct format and have created the training file above. The following is a description of arguments:
 
-|Required Arguments|
+**Required Arguments**
+
 |Flag|Type|Desription|
 |----|----|----------|
 |-b --bedgraph| \</path/to/BedGraphFile>              | bedGraph File from above
 |-s --strand  | \<+/->                                | Specifes which strand (pos/neg) you trained on <br> **NOTE: You can only train on ONE strand!**</br>
 |-t --train   | \</path/to/TrainingFile.bed>          | Training File from above (BED4 format)
 |-o --output  | \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
+
+**Optional Arguments**
+
+|Flag|Type|Desription|
+|----|----|----------|
 |-n --threads | \<integer>                            | number of processors, default 1
 
 Putting this together
