@@ -38,9 +38,11 @@ In short, the setup.sh just runs “make clean” and "make" in the src/ directo
 
 ## Running FStitch
 
-The Fast Read Stitcher program is divided into two main commands: “train” and “segment”. “train” estimates the necessary probabilistic model parameters and “segment” pulls the output from “train” and classifies the entire genome into _active_ and _inactive_ regions of regions of high density read coverage. 
+The Fast Read Stitcher program is divided into two main commands: `train` and `segment` 
+* `train`: estimates the necessary probabilistic model parameters
+* `segment`: uses the output model parameters and segments the entire genome into *active* and *inactive* regions of transcription
 
-Note that a quick reference to the below parameters and software usage can be supplied by 
+To view the usage statement, use following standard arguments (must be compiled!):
 ```
 $/src/FStitch -h 
 
@@ -61,36 +63,38 @@ Your .bedGraph file **should not contain 0 values** and should be **non-normaliz
 There are two main tools for generating bedGraph coverage files from BAM files, deepTools and BEDTools. By default, deepTools bamCoverage will have discrete bins (50bp) and will therefore calculate average coverage over regions, rather that contigs of regions with equal read coverage, and "smooth" the data. While this is not a problem for visualizaiton at smaller bins, it will conflict with normalization. Therefore, we recommend using default BEDtools<sup>3</sup> genomecov settings:
     
 ```
-$ bedtools genomecov -ibam <file.bam> -g <file.bedGraph> -bg -s “+/-“
+$ bedtools genomecov -ibam <file.bam> -g <file.bedGraph> -bg -s <+/->
 ```
 
-We note that specifying five prime (-5 argument) in the “genomecov” may allow for cleaner annotations however unspecified five prime bed works just fine as well. 
+Specifying five prime (-5 argument) in the “genomecov” may allow for cleaner annotations however unspecified five prime bed works just fine as well. 
 
 
 ## FStitch train
-FStitch uses two probabilistic models to classify regions of high read density that may be indicative of nascent transcription (GRO-seq) or a read coverage peak (ChIP-seq): Logistic Regression and a Hidden Markov Model. The logistic regression coefficients are estimated via a user defined label training file.  Sense we are classifying regions as signal or noise, FStitch requires regions of the genome that show characteristic transcription or high read dense profiles and regions of the genome that display noise or not a profile of nascent transcription or a read dense region. With this information, FStitch trains a logistic regression classifier and then couples it to a Markov model. The transition parameters for the Markov model are learned via the Baum Welch algorithm and thus do not require user label training data.  
+FStitch uses two probabilistic models to classify regions of high read density into "active" transcriptional regions: Logistic Regression (LR) and a Hidden Markov Model (HMM). The LR coefficients are estimated via a user defined label training file. Because we are classifying regions as signal or noise, FStitch requires regions of the genome that show characteristic transcription or high read dense profiles and regions of the genome that display noise or not a profile of nascent transcription or a read dense region. With this information, FStitch trains a logistic regression classifier and then couples it to a HMM. The transition parameters for the Markov model are learned via the Baum Welch algorithm and thus do not require user labeled training data.  
 
-In short, FStitch requires regions the user considers active transcription (or a peak) and regions considered inactive (simply noise). We note that the more regions provided to FStitch the more accurate the classifications however we have in Cross Validation<sup>1</sup> analysis that roughly 10-15 regions of active and inactive regions will yield accurate classifications. These regions are provided to FStitch using a specific file format with four columns separated by tabs: chromosome, genomic coordinate start, genomic coordinate stop, (0 if “noise” or 1 “signal”). An example is given below:
+In short, FStitch requires regions the user considers active transcription and regions considered inactive (noise). The more regions provided to FStitch the more accurate the classifications however we have in Cross Validation<sup>1</sup> analysis that roughly 15-20 regions of active and inactive regions will yield accurate classifications. 
 
-![Alt text](https://github.com/azofeifa/FStitch/blob/master/images/TrainingFileImage2.png)
+### Training file Format
 
-The segments do not need to be in any order and can be from any chromosome, however each region must not overlap any other segment as this will cause confusion in the learning algorithms for the logistic regression classifier. 
+These regions are provided to FStitch using a specific file format with four columns separated by tabs: chromosome, genomic coordinate start, genomic coordinate stop, (0 if “noise” or 1 “signal”). An example is given below:
+
+![Alt text](images/TrainingFileImage2.png)
+
+The segments do not need to be in any order and can be from any chromosome, however **each region must not overlap any other segment** as this will cause confusion in the learning algorithms for the LR classifier. 
 
 Running FStitch train is simple once you have your data in the correct format and have created the training file above. A description of the parameters for FStitch train are given below
 
 |Flag|Type|Desription|
 |----|----|----------|
-|-i	 | \</path/to/BedGraphFile> | BedGraph File from above
-| -j | \</path/to/TrainingFile> | Training File from above
-| -o | \</path/to/anyName> | TrainingParameterOutFile
-| -np| number | number of processors, default 8
-| -al| number |learning rate for newtons method, default 1
-| -cm| number | max number of iterations for Baum-Welch, default 100
-| -ct| number | convergence threshold for Baum Welch, default 0.01
-| -reg| number | regularization parameter for logistic regression classifier, default 1
+|-b --bedgraph| \</path/to/BedGraphFile> | bedGraph File from above
+|-s --strand| \<+/-> | bedGraph File from above
+|-t --train| \</path/to/TrainingFile.bed> | Training File from above (BED4 format)
+|-o --output| \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
+|-n --threads| \<integer> | number of processors, default 1
+
 Putting this together
 ```
-$ /src/FStitch train -i \</path/to/BedGraphFile\> -j \</path/to/TrainingFile> -o \</path/to/anyName.out>
+$ FStitch train -b </path/to/BedGraphFile> -s (+/-) -t </path/to/TrainingFile.bed>  -o </path/to/Parameters.hmminfo>
 ```
 This will produce the a fie called anyName.out that will store the learned parameters for the logistic regression and HMM transition parameters need in “FStitch segment”. Below is one such output for anyName.out
 
@@ -98,6 +102,18 @@ This will produce the a fie called anyName.out that will store the learned param
 
 Very important: If FStitch is being used on stranded data, the BedGraph file used in the “FStitch train” command must correspond to the strand indicated in the TrainingFile. For example, if the strand in the training file comes from the forward strand but the user supplies a BedGraph file that is on the reverse strand, then learned parameters will not be accurate. 
 
+### Training Tips
+
+Annotating regions of "active" and "inactive" transcription ("ON" and "OFF") and generating a desirable training file typically requires a little bit of trial-and-error. That said, the following are some tips to expedite the learning process.
+
+##### Avoid "overtraining"
+If your aim is to segment your sample into long contigs (e.g. for improving 5' and 3' gene annotation), it is best **not to overtrain**, or in other words provide too many training examples. If you provide >40 regions, you will get noticably larger .bed output files as a result of increasing the number of segments, or "contigs". In other words, the more regions you prodide, the more you simply obtain regions where coverage = 0 is "OFF" and any coverage > 0 is "ON". We don't need FStitch to give us this information.
+
+##### Try to pick large training regions
+If you annotate training regions that are <1000bp, there will likely not be enough annotated regions of coverage in the given bedGraph file to accurating calculate the LR coefficients. Try to pick a mixture of regions between 1b and 50kb for training.
+
+##### Do not pick "dead zones"
+For regions you annotate as "OFF", be sure to include regions that have some background signal, or "noise". Remember, you will be training using your bedGraph file, so if you pick regions that have "0" coverage and you followed the instructions above for coverage file formatting, you will not be providing FStitch any regions to assess. FStitch will try to account for data "gapiness" or the distance between read coverage regions, and therefore the more "background" (think of ChIP input controls) you can provide it, the better FStich will be able to distinguish the "noise" from the "activity".
 
 ## FStitch segment
 FStitch segment follows from FStitch train and takes as input the TrainingParameterOutFile (from above, \</path/to/anyName.out>) as input, along with the original BedGraph file. A description of the parameters for FStitch segment are given below
