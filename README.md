@@ -60,6 +60,7 @@ chr    start    end    coverage
 1      107      117     1
 
 ***IMPORTANT***
+
 Your .bedGraph file **should not contain 0 values** and should be **non-normalized**. FStitch performs an internal normalization.
 
 There are two main tools for generating bedGraph coverage files from BAM files, deepTools and BEDTools. By default, deepTools bamCoverage will have discrete bins (50bp) and will therefore calculate average coverage over regions, rather that contigs of regions with equal read coverage, and "smooth" the data. While this is not a problem for visualizaiton at smaller bins, it will conflict with normalization. Therefore, we recommend using default BEDtools<sup>3</sup> genomecov settings:
