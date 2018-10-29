@@ -88,14 +88,24 @@ The segments do not need to be in any order and can be from any chromosome, howe
 
 Running FStitch train is simple once you have your data in the correct format and have created the training file above. A description of the parameters for FStitch train are given below
 
-|Flag|Type|Desription|
-|----|----|----------|
-|Required Arguments|
-|-b --bedgraph| \</path/to/BedGraphFile>              | bedGraph File from above
-|-s --strand  | \<+/->                                | Specifes which strand (pos/neg) you trained on **NOTE: You can only train on ONE strand!**
-|-t --train   | \</path/to/TrainingFile.bed>          | Training File from above (BED4 format)
-|-o --output  | \</path/to/outDir/Parameters.hmminfo> | Training Parameter OutFile (.hmminfo extension)
-|-n --threads | \<integer>                            | number of processors, default 1
++----------------------------------------------------------------------------------------------------------------------------+
+|**Required Arguments**                                                                                                      |
++=================+=========================================+================================================================+
+|Flag             |Type                                     |Desription                                                      |
++-----------------+-----------------------------------------+----------------------------------------------------------------+
+|-b --bedgraph    | \</path/to/BedGraphFile>                | bedGraph File                                                  |
++-----------------+-----------------------------------------+----------------------------------------------------------------+
+|-s --strand      | \<+/->                                  | Specifes which strand (pos/neg) you provide training data for\ |
+|                 |                                         | **NOTE: You can only train on ONE strand!**                    |
++-----------------+-----------------------------------------+----------------------------------------------------------------+
+|-t --train       | \</path/to/TrainingFile.bed>            | Training File from above (BED4 format)                         |
++-----------------+-----------------------------------------+----------------------------------------------------------------+
+|-o --output      | \</path/to/outDir/Parameters.hmminfo>   | Training Parameter OutFile (.hmminfo extension)                |
++-----------------+-----------------------------------------+----------------------------------------------------------------+
+|**Optional Arguments**                                                                                                      |
++=================+=========================================+================================================================+
+|-n --threads     | \<integer>                              | Number of processors, default = 1                              |
++-----------------+-----------------------------------------+----------------------------------------------------------------+
 
 Putting this together
 ```
