@@ -169,8 +169,8 @@ FStitch `segment` uses the parameters obtained from `train` (from above, \</path
 |Flag|Type|Desription|
 |----|----|----------|
 |-b  --bedgraph     | \</path/to/sample.bedGraph>           |BedGraph File Format from above
-|-s  --strand       | \<+/->                                |Specifes which strand (pos/neg) you wish to segment <br> **NOTE: You can only train on ONE strand!**</br>
-|-p  --params       | \</path/to/Parameters.hmminfo>        |Training Parameter Out File from FStitch train call
+|-s  --strand       | \<+/->                                |Specifes which strand (pos/neg) you wish to segment <br> **NOTE: You can only segment on ONE strand at a time!**</br>
+|-p  --params       | \</path/to/Parameters.hmminfo>        |Training parameters prduced from train module
 |-o  --output       | \</path/to/segmentFile.bed>           |Your output segmentFile.bed (BED9 format)
 
 **Optional Arguments**
