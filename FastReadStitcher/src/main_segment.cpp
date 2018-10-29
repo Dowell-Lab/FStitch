@@ -173,7 +173,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         {
             if(strand!="-")
             {
-                cerr<<"Error: Mismatch between provided histogram bedgraph and training parameters."<<endl;
+                cerr<<"Error: Mismatch between provided bedgraph and training parameters."<<endl;
                 return 0;
             }
             
@@ -197,7 +197,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             //If this doesn't match the selected strand, then we have a problem:
             if(strand!="+")
             {
-                cerr<<"Error: Mismatch between provided histogram bedgraph and training parameters."<<endl;
+                cerr<<"Error: Mismatch between provided histogram bedgraph strandedness and training parameters."<<endl;
                 return 0;
             }
             
@@ -210,7 +210,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         
         else
         {
-            cerr<<"Error: No viable histogram bedgraph file specified. Exiting..."<<endl;
+            cerr<<"Error: No viable bedgraph file specified. Exiting..."<<endl;
             return 0;
         }
         
@@ -251,8 +251,11 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             }
         }
     }
-
-    cout<<"Input bed file split? "<<inbeds.wasSplit<<endl;
+    
+    if(verbose)
+    {
+        cout<<"Input bed file split? (0 = false, 1 = true)"<<inbeds.wasSplit<<endl;
+    }
 
     //In this case, we need to segment twice:
     if(inbeds.wasSplit)
@@ -312,7 +315,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         }
         
         results.clear();
-        printf("Deleted %d states totaling %lu byts.\n", stChainSize, stChainSize*sizeof(state));
+        printf("Deleted %d states totaling %lu bytes.\n", stChainSize, stChainSize*sizeof(state));
         
         map<string, contig *>::iterator cti;
         int ctgChainSize=0;
@@ -377,7 +380,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         }
         
         results.clear();
-        printf("Deleted %d states totaling %lu byts.\n", stChainSize, stChainSize*sizeof(state));
+        printf("Deleted %d states totaling %lu bytes.\n", stChainSize, stChainSize*sizeof(state));
         
         ctgChainSize=0;
         
@@ -402,7 +405,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             remove(inbeds.in2ch);
         }
         
-        else
+        else if (verbose)
         {
             cout<<"All temporary files mentioned previously have been preserved. Delete them manually if necessary."<<endl;
         }
@@ -449,7 +452,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
             remove(inbeds.in1ch);
         }
         
-        else
+        else if (verbose)
         {
             cout<<"All temporary files mentioned previously have been preserved. Delete them manually if necessary."<<endl;
         }
@@ -466,7 +469,7 @@ int run_main_segment_pwrapper(ParamWrapper *p)
         }
         
         results.clear();
-        printf("Deleted %d states totaling %lu byts.\n", stChainSize, stChainSize*sizeof(state));
+        printf("Deleted %d states totaling %lu bytes.\n", stChainSize, stChainSize*sizeof(state));
         
         map<string, contig *>::iterator cti;
         int ctgChainSize=0;
