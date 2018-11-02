@@ -32,7 +32,7 @@ void ParamWrapper::printUsage()
     printf("                                 chr1    7501    11100   0\n");
     printf("                                 **IMPORTANT: There can be no overlapping training regions.**\n\n");
     printf("Optional arguments:\n\n");
-    printf("  -n || --threads <integer>     This specifies the number of threads/processors to run on.\n");
+    printf("  -n || --threads <integer>      This specifies the number of threads/processors to run on.\n");
     printf("                                 Default = 1.\n\n");
     /* rp and rn function, but can very easily lead to a numnber of errors if the user inputs a bedGraph with both
      * positive and negative strand information. -r works fine and the strand the user wants to train on based on .bed file
@@ -153,7 +153,7 @@ ParamWrapper::ParamWrapper()
     this->eRNA=false;
     this->verbose=true;
     this->chip=false;
-    this->numProcs=8;
+    this->numProcs=1;
     //Set learning parameters:
     this->maxConvergenceIters=100;
     this->learningRate=0.4;
