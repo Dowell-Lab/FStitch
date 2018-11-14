@@ -61,9 +61,9 @@ void paramsTrain::display(){
 	if (params["-al"]!="1"){
 	cout<<"learning rate (user defined): "<<params["-ct"]<<endl;
 	}
-	if (not params["-chip"].empty()){
-	cout<<"ChIP Data      : True"<<endl;
-	}
+//	if (not params["-chip"].empty()){
+//	cout<<"ChIP Data      : True"<<endl;
+//	}
 
 
 
