@@ -212,7 +212,8 @@ if args.gen_plot:
     .axes.set_xaxis_label('Length')
     .axes.set_yaxis_label('Number')
     .save(rootname + '.length_hist.html'))
-    
+
+    dff_short = dff[dff['length'] <= int(args.split_length)]
     print('Adjusted mean length: ', dff_short['length'].mean())
     print('Adjusted median length: ', dff_short['length'].median())
     
