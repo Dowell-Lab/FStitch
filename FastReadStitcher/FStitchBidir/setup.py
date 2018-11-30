@@ -18,13 +18,15 @@ setup(name='FStitchBidir',
       url='http://github.com/storborg/funniest',
       author='Margaret Gruca',
       author_email='margaret.gruca@colorado.edu',
-      license='MIT'
+      license='MIT',
+      python_requires='>=3.6',
       classifiers=[
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
-        'Programming Language :: Python :: 3'])
-
+        'Programming Language :: Python :: 3'
+      ],
+      
 keywords='bioinformatics genomics chromatin ATAC-seq motif transcription_factor',
 
     package_dir={'bidir' : 'bidir'},
