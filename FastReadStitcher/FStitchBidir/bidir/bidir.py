@@ -29,6 +29,9 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--footprint', dest='footprint', metavar='<FOOTPRINT>', \
                        help='The footprint is a gap between positive and negative reads. This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. This value should likely be increased for lower complexity data and will have minimal effect for high complexity data. Default = 300.', default=300, required=False)
     
+    parser.add_argument('-lg', '--mergelength', dest='merge_length', metavar='<MERGE_LENGTH>', \
+                        help='Choose length (in bp) for short/long merge length. Short and long calls are segregated and merged separately to prevent short calls from being merged into long bidirectional regions (e.g. superenhancers, unanoated genes/lncRNAs). Default=12000', default=12000, required=False)
+    
     parser.add_argument('-lm', '--maxlength', dest='bidir_length', metavar='<BIDIR_LENGTH>', \
                         help='Integer value (in bp) for max bidirectional length. Default=30000', default=30000, required=False)
     
@@ -42,6 +45,7 @@ if __name__ == "__main__":
 
 print('Max bidirectional length set to:', args.bidir_length)
 print('Footprint set to:', args.footprint)
+print('Split length set to:', args.split_length)
 print(str(datetime.datetime.now()) + '\nStarting bidirectional caller.....')
 
 fstitch_seg_file = pd.read_table((args.fstitch_seg_filename), header=None, skiprows=1, usecols=range(6))
@@ -145,16 +149,16 @@ print('Filtering bidirectionals by length.....')
 
 # This is controled by parameter 'l' currently. Should the following filters be based on this parameter, as well...?
 
-df = df[df['diff'] <= (args.bidir_length)]
+df = df[df['diff'] <= int(args.bidir_length)]
 
 # These steps merge based on size. Do not want to merge large things with small things... this ends up mering all discrete calls with gene/lcnRNA/superenhancer calls
 
-df1 = df[(df['diff'] <= 12000) & (df['diff'] > 100)]
+df1 = df[(df['diff'] <= int(args.merge_length)) & (df['diff'] > 100)]
 bt_df1 = BedTool.from_dataframe(df1)
 bt_df1 = bt_df1.sort().merge()
 df1 = BedTool.to_dataframe(bt_df1)
 
-df2 = df[df['diff'] > 12000]
+df2 = df[df['diff'] > int(args.merge_length)]
 bt_df2 = BedTool.from_dataframe(df2)
 bt_df2 = bt_df2.sort().merge()
 df2 = BedTool.to_dataframe(bt_df2)
@@ -174,9 +178,9 @@ dff.to_csv((args.output), sep="\t", header=None, index=False)
 if args.split_length:
     print('Splitting output into short and long bidirectionals...')
     
-    dff_short = dff[dff['length'] <= args.split_length]
+    dff_short = dff[dff['length'] <= int(args.split_length)]
     dff_short.to_csv((rootname + '.short.bed'), sep="\t", header=None, index=False)
-    dff_long = dff[dff['length'] > args.split_length]
+    dff_long = dff[dff['length'] > int(args.split_length)]
     dff_long.to_csv((rootname + '.long.bed'), sep="\t", header=None, index=False)
 
     stat_name = ['footprint', 'max_length', 'split_length' 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs']
@@ -198,11 +202,9 @@ if args.gen_plot:
     print('Mean length: ', dff['length'].mean())
     print('Median length: ', dff['length'].median())
     
-    plot = dff
-    
     (chartify.Chart(blank_labels=True, y_axis_type='density')
     .plot.histogram(
-       data_frame=plot,
+       data_frame=dff,
        values_column='length',
        bins=50)
     .set_title('Bidirectional Lengths')
@@ -216,7 +218,7 @@ if args.gen_plot:
     
     (chartify.Chart(blank_labels=True, y_axis_type='density')
     .plot.histogram(
-       data_frame=plot,
+       data_frame=dff_short,
        values_column='length',
        bins=50)
     .set_title('Bidirectional Lengths')
