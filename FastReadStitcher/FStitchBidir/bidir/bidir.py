@@ -20,18 +20,23 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--genes', dest='gene_ref', metavar='GENE_REF.BED', \
                        help='Gene reference file in BED format.', required=True)
     
-    parser.add_argument('-f', '--footprint', dest='footprint', metavar='<FOOTPRINT>', \
-                       help='The footprint is a gap between positive and negative reads. This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. This value should likely be increased for lower complexity data and will have minimal effect for high complexity data. Default = 300.', default=300, required=False)
-    
-        
-    parser.add_argument('-l', '--length', dest='bidir_length', metavar='<BIDIR_LENGTH>', \
-                        help='Integer value for max bidirectional length. Default=30000', default=30000, required=False)
-    
     parser.add_argument('-o', '--output', dest='output', metavar='SAMPLE.BED', \
                         help='Directory where output BED file, stats, and plots will be saved. Full path and file extension for the BED file must be specified.', required=True)
     
+    parser.add_argument('-s', '--split', dest='split', action='store_true', \
+                        help='Split files into short and long bidirectionals. Default = False', default=False, required=False)
+    
+    parser.add_argument('-f', '--footprint', dest='footprint', metavar='<FOOTPRINT>', \
+                       help='The footprint is a gap between positive and negative reads. This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. This value should likely be increased for lower complexity data and will have minimal effect for high complexity data. Default = 300.', default=300, required=False)
+    
+    parser.add_argument('-lm', '--maxlength', dest='bidir_length', metavar='<BIDIR_LENGTH>', \
+                        help='Integer value (in bp) for max bidirectional length. Default=30000', default=30000, required=False)
+    
+    parser.add_argument('-ls', '--splitlength', dest='split_length', metavar='<SPLIT_LENGTH>', \
+                        help='Choose length (in bp) for short/long bidirectional file split. Only an option if -s flag is specified. Default=8000', default=8000, required=False)
+    
     parser.add_argument('-p', '--plotbidirs', dest='gen_plot', action='store_true', \
-                        help='Generate a histogram plot for bidirectional lengths.', default=False, required=False)
+                        help='Generate a histogram plot for bidirectional lengths. Default = False', default=False, required=False)
     
     args = parser.parse_args()
 
@@ -163,13 +168,30 @@ dff['id'] = 'bidir_' + dff['id'].astype(str)
 dff['length'] = dff.end - dff.start
 dff.to_csv((args.output), sep="\t", header=None, index=False)
 
+# Save options : split file based on a length (-ls)
 # Print stats
 
-stat_name = ['footprint', 'max_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs']
-stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff.index)]
+if args.split_length:
+    print('Splitting output into short and long bidirectionals...')
     
-stats = pd.DataFrame([stat_name, stat_value])
-stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
+    dff_short = dff[dff['length'] <= args.split_length]
+    dff_short.to_csv((rootname + '.short.bed'), sep="\t", header=None, index=False)
+    dff_long = dff[dff['length'] > args.split_length]
+    dff_long.to_csv((rootname + '.long.bed'), sep="\t", header=None, index=False)
+
+    stat_name = ['footprint', 'max_length', 'split_length' 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs']
+    stat_value = [(args.footprint), (args.bidir_length), (args.split_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff_short.index), len(dff_long.index), len(dff.index)]
+        
+    stats = pd.DataFrame([stat_name, stat_value])
+    stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
+
+else:
+
+    stat_name = ['footprint', 'max_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs']
+    stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff.index)]
+        
+    stats = pd.DataFrame([stat_name, stat_value])
+    stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
                       
 if args.gen_plot:
     print('Generating a histogram for bidirectional lengths...')
@@ -178,27 +200,30 @@ if args.gen_plot:
     
     plot = dff
     
-    ch = chartify.Chart(blank_labels=True, y_axis_type='density')
-    ch.set_title("All bidirectional Lengths")
-    ch.set_subtitle("")
-    ch.plot.histogram(
-           data_frame=plot,
-           values_column='length',
-           bins=50)
-    ch.save(rootname + '.length_hist.html')
-                       
-    plot = plot[plot['length'] < 10000]
-    print('Adjusted mean length: ', plot['length'].mean())
-    print('Adjusted median length: ', plot['length'].median())
+    (chartify.Chart(blank_labels=True, y_axis_type='density')
+    .plot.histogram(
+       data_frame=plot,
+       values_column='length',
+       bins=50)
+    .set_title('Bidirectional Lengths')
+    .set_subtitle('All Bidirectionals')
+    .axes.set_xaxis_label('Length')
+    .axes.set_yaxis_label('Number')
+    .save(rootname + '.length_hist.html'))
     
-    ch = chartify.Chart(blank_labels=True, y_axis_type='density')
-    ch.set_title("Bidirectional Lengths < 10000")
-    ch.set_subtitle("")
-    ch.plot.histogram(
-           data_frame=plot,
-           values_column='length',
-           bins=50)
-    ch.save(rootname + '.filtered_length_hist.html')
+    print('Adjusted mean length: ', dff_short['length'].mean())
+    print('Adjusted median length: ', dff_short['length'].median())
+    
+    (chartify.Chart(blank_labels=True, y_axis_type='density')
+    .plot.histogram(
+       data_frame=plot,
+       values_column='length',
+       bins=50)
+    .set_title('Bidirectional Lengths')
+    .set_subtitle('Length < ' + str(args.split_length) + 'bp')
+    .axes.set_xaxis_label('Length')
+    .axes.set_yaxis_label('Number')
+    .save(rootname + '.short_length_hist.html'))
                       
 print('Bidirectional module complete.\n' + str(datetime.datetime.now()))
 sys.exit(0)
