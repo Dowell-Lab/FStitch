@@ -164,7 +164,16 @@ intergenic_bidirs = BedTool.to_dataframe(bt_intergenic_bidirs)
 ### Now that we have both intragenic and intergenic bidirectionals, it's time to filter and merge based on size                      
                       
 df = pd.concat([intergenic_bidirs, intragenic_bidirs])
-df['diff'] = df.end - df.start                    
+
+# Optionally remove bidirectionals that fall directly over a tss
+
+if(args.tss_remove):
+    bt_genes_tss = BedTool.from_dataframe(genes_tss)
+    bt_df = BedTool.from_dataframe(df)
+    bt_df = bt_df.subtract(bt_genes_tss, A=True)
+    df = BedTool.to_dataframe(bt_df)
+
+df['diff'] = df.end - df.start
 
 print('Filtering bidirectionals by length.....')                      
 
@@ -189,13 +198,6 @@ df2 = BedTool.to_dataframe(bt_df2)
 dff = pd.concat([df1, df2])
 bt_dff = BedTool.from_dataframe(dff)
 bt_dff = bt_dff.sort()
-
-# Optionally remove bidirectionals that fall directly over a tss
-
-if(args.tss_remove):
-    bt_genes_tss = BedTool.from_dataframe(genes_tss)
-    bt_dff = bt_dff.subtract(bt_genes_tss, A=True)
-
 dff = BedTool.to_dataframe(bt_dff)
 dff['id'] = dff.index + 1
 dff['id'] = 'bidir_' + dff['id'].astype(str)
