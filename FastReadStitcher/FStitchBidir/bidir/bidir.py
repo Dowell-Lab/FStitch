@@ -42,11 +42,20 @@ if __name__ == "__main__":
                         help='Generate a histogram plot for bidirectional lengths. Default = False', default=False, required=False)
     
     args = parser.parse_args()
+    
 
-print('Max bidirectional length set to:', args.bidir_length,'bp')
-print('Footprint set to:', args.footprint,'bp')
-print('Split length set to:', args.split_length,'bp')
-print(str(datetime.datetime.now()) + '\nStarting bidirectional caller.....')
+if (int(args.bidir_length) <= int(args.merge_length)):
+        print ("Bidirectional max length cannot be less than the merge length.")
+        sys.exit()
+
+elif (int(args.bidir_length) <= int(args.split_length)):
+        print("Bidirectional max length cannot be less than the split length.")
+        sys.exit()
+else:
+    print('Max bidirectional length set to:', args.bidir_length,'bp')
+    print('Footprint set to:', args.footprint,'bp')
+    print('Split length set to:', args.split_length,'bp')
+    print(str(datetime.datetime.now()) + '\nStarting bidirectional caller.....')
 
 fstitch_seg_file = pd.read_table((args.fstitch_seg_filename), header=None, skiprows=1, usecols=range(6))
 genes = open(args.gene_ref)
