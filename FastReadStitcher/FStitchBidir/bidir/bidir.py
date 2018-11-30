@@ -43,16 +43,16 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-print('Max bidirectional length set to:', args.bidir_length)
-print('Footprint set to:', args.footprint)
-print('Split length set to:', args.split_length)
+print('Max bidirectional length set to:', args.bidir_length,'bp')
+print('Footprint set to:', args.footprint,'bp')
+print('Split length set to:', args.split_length,'bp')
 print(str(datetime.datetime.now()) + '\nStarting bidirectional caller.....')
 
 fstitch_seg_file = pd.read_table((args.fstitch_seg_filename), header=None, skiprows=1, usecols=range(6))
 genes = open(args.gene_ref)
 rootname = os.path.splitext(args.output)[0]
 
-# Format FStitch file
+### Format FStitch file
 
 print('Parsing strand information.....')
 
@@ -63,7 +63,7 @@ fstitch_seg_file = fstitch_seg_file.drop(columns= ['activity' , 'igv_tag' , 'CI'
 
 ### Parse the strands and 300bp to end of negative strand -- this acts as a pseduo bedtools '-d' flag or a 'footprint' value 
 
-# Getting warning here... believe it is a false positive but will triple check later. For now, we'll supress the warning output
+# Getting a warning here... believe it is a false positive but will triple check later. For now, we'll supress the warning output
 pd.options.mode.chained_assignment = None
 
 fs_neg = fstitch_seg_file[fstitch_seg_file['strand'] != "+"]
@@ -71,7 +71,7 @@ fs_neg['end'] = fs_neg.end + args.footprint
 
 fs_pos = fstitch_seg_file[fstitch_seg_file['strand'] != "-"]
 
-# Format the gene reference file
+### Format the gene reference file
 
 print('Parsing gene reference information.....')
 
@@ -150,10 +150,11 @@ print('Filtering bidirectionals by length.....')
 # This is controled by parameter 'l' currently. Should the following filters be based on this parameter, as well...?
 
 df = df[df['diff'] <= int(args.bidir_length)]
+dropped_bidirs = df[df['diff'] <= 100]
 
 # These steps merge based on size. Do not want to merge large things with small things... this ends up mering all discrete calls with gene/lcnRNA/superenhancer calls
 
-df1 = df[(df['diff'] <= int(args.merge_length)) & (df['diff'] > 100)]
+df1 = df[(df['diff'] <= int(args.merge_length)) & (df['diff'] >= 100)]
 bt_df1 = BedTool.from_dataframe(df1)
 bt_df1 = bt_df1.sort().merge()
 df1 = BedTool.to_dataframe(bt_df1)
@@ -183,16 +184,16 @@ if args.split_length:
     dff_long = dff[dff['length'] > int(args.split_length)]
     dff_long.to_csv((rootname + '.long.bed'), sep="\t", header=None, index=False)
 
-    stat_name = ['footprint', 'max_length', 'split_length' 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs']
-    stat_value = [(args.footprint), (args.bidir_length), (args.split_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff_short.index), len(dff_long.index), len(dff.index)]
+    stat_name = ['footprint', 'max_length', 'split_length' 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs', 'dropped_short_bidirs']
+    stat_value = [(args.footprint), (args.bidir_length), (args.split_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff_short.index), len(dff_long.index), len(dff.index), len(dropped_bidirs.index)]
         
     stats = pd.DataFrame([stat_name, stat_value])
     stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
 
 else:
 
-    stat_name = ['footprint', 'max_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs']
-    stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff.index)]
+    stat_name = ['footprint', 'max_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs', 'dropped_short_bidirs']
+    stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff.index), len(dropped_bidirs.index)]
         
     stats = pd.DataFrame([stat_name, stat_value])
     stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
