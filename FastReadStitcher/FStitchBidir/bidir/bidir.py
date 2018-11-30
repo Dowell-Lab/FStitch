@@ -33,7 +33,7 @@ if __name__ == "__main__":
                         help='Choose length (in bp) for short/long merge length. Short and long calls are segregated and merged separately to prevent short calls from being merged into long bidirectional regions (e.g. superenhancers, unanoated genes/lncRNAs). Default=12000', default=12000, required=False)
     
     parser.add_argument('-lm', '--maxlength', dest='bidir_length', metavar='<BIDIR_LENGTH>', \
-                        help='Integer value (in bp) for max bidirectional length. Default=30000', default=30000, required=False)
+                        help='Integer value (in bp) for max bidirectional length. Default=25000', default=25000, required=False)
     
     parser.add_argument('-ls', '--splitlength', dest='split_length', metavar='<SPLIT_LENGTH>', \
                         help='Choose length (in bp) for short/long bidirectional file split. Only an option if -s flag is specified. Default=8000', default=8000, required=False)
@@ -149,8 +149,9 @@ print('Filtering bidirectionals by length.....')
 
 # This is controled by parameter 'l' currently. Should the following filters be based on this parameter, as well...?
 
+dropped_bidirs_short = df[(df['diff'] <= 100)]
+dropped_bidirs_long = df[(df['diff'] >= int(args.bidir_length))]
 df = df[df['diff'] <= int(args.bidir_length)]
-dropped_bidirs = df[df['diff'] <= 100]
 
 # These steps merge based on size. Do not want to merge large things with small things... this ends up mering all discrete calls with gene/lcnRNA/superenhancer calls
 
@@ -184,16 +185,16 @@ if args.split:
     dff_long = dff[dff['length'] > int(args.split_length)]
     dff_long.to_csv((rootname + '.long.bed'), sep="\t", header=None, index=False)
 
-    stat_name = ['footprint', 'max_length', 'split_length' 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs', 'dropped_short_bidirs']
-    stat_value = [(args.footprint), (args.bidir_length), (args.split_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff_short.index), len(dff_long.index), len(dff.index), len(dropped_bidirs.index)]
+    stat_name = ['footprint', 'max_length', 'split_length' 'fstitch_pos_segs', 'fstitch_neg_segs', 'dropped_short_bidirs', 'dropped_long_bidirs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs']
+    stat_value = [(args.footprint), (args.bidir_length), (args.split_length), len(fs_pos.index), len(fs_neg.index), len(dropped_bidirs_short.index), len(dropped_bidirs_long.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff_short.index), len(dff_long.index), len(dff.index)]
         
     stats = pd.DataFrame([stat_name, stat_value])
     stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
 
 else:
 
-    stat_name = ['footprint', 'max_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs', 'dropped_short_bidirs']
-    stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff.index), len(dropped_bidirs.index)]
+    stat_name = ['footprint', 'max_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'dropped_short_bidirs', 'dropped_long_bidirs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs']
+    stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(dropped_bidirs_short.index), len(dropped_bidirs_long.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff.index)]
         
     stats = pd.DataFrame([stat_name, stat_value])
     stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
