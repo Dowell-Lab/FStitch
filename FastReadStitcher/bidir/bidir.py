@@ -1,0 +1,208 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+import argparse
+import numpy as np
+import datetime
+import pandas as pd
+import chartify
+import sys
+import os
+from pybedtools import BedTool
+from argparse import RawTextHelpFormatter
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='FStitch Bidirectional Module\n\nAnnotate bidirectionals using FStitch segment output.', epilog='@Dowell Lab, Margaret Gruca, margaret.gruca@colorado.edu\nFor questions and issues, see https://github.com/Dowell-Lab/FStitch', formatter_class=RawTextHelpFormatter)
+    
+    parser.add_argument('-b', '--bed', dest='fstitch_seg_filename', metavar='FSTITCH.BED', \
+                       help='FStitch segment output (BED file), concatenated for both postive and negative strands.', required=True)
+    
+    parser.add_argument('-g', '--genes', dest='gene_ref', metavar='GENE_REF.BED', \
+                       help='Gene reference file in BED format.', required=True)
+    
+    parser.add_argument('-f', '--footprint', dest='footprint', metavar='<FOOTPRINT>', \
+                       help='The footprint is a gap between positive and negative reads. This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. This value should likely be increased for lower complexity data and will have minimal effect for high complexity data. Default = 300.', default=300, required=False)
+    
+        
+    parser.add_argument('-l', '--length', dest='bidir_length', metavar='<BIDIR_LENGTH>', \
+                        help='Integer value for max bidirectional length. Default=30000', default=30000, required=False)
+    
+    parser.add_argument('-o', '--output', dest='output', metavar='SAMPLE.BED', \
+                        help='Directory where output BED file, stats, and plots will be saved. Full path and file extension for the BED file must be specified.', required=True)
+    
+    parser.add_argument('-p', '--plotbidirs', dest='gen_plot', action='store_true', \
+                        help='Generate a histogram plot for bidirectional lengths.', default=False, required=False)
+    
+    args = parser.parse_args()
+
+print('Max bidirectional length set to:', args.bidir_length)
+print('Footprint set to:', args.footprint)
+print(str(datetime.datetime.now()) + '\nStarting bidirectional caller.....')
+
+fstitch_seg_file = pd.read_table((args.fstitch_seg_filename), header=None, skiprows=1, usecols=range(6))
+genes = open(args.gene_ref)
+rootname = os.path.splitext(args.output)[0]
+
+# Format FStitch file
+
+print('Parsing strand information.....')
+
+fstitch_seg_file[3], fstitch_seg_file[6] = fstitch_seg_file[3].str.split('=', 1).str
+fstitch_seg_file.columns = ['chromosome', 'start', 'end', 'activity', 'igv_tag', 'strand', 'CI']
+fstitch_seg_file = fstitch_seg_file[~fstitch_seg_file['activity'].isin(['OFF'])]
+fstitch_seg_file = fstitch_seg_file.drop(columns= ['activity' , 'igv_tag' , 'CI'])
+
+### Parse the strands and 300bp to end of negative strand -- this acts as a pseduo bedtools '-d' flag or a 'footprint' value 
+
+# Getting warning here... believe it is a false positive but will triple check later. For now, we'll supress the warning output
+pd.options.mode.chained_assignment = None
+
+fs_neg = fstitch_seg_file[fstitch_seg_file['strand'] != "+"]
+fs_neg['end'] = fs_neg.end + args.footprint
+
+fs_pos = fstitch_seg_file[fstitch_seg_file['strand'] != "-"]
+
+# Format the gene reference file
+
+print('Parsing gene reference information.....')
+
+genes = pd.read_table((args.gene_ref), header=None, usecols=range(6))
+genes.columns = ['chromosome', 'start', 'end', 'id' , 'identifier', 'strand']
+genes = genes.drop(columns= ['identifier'])
+genes_pos = genes[genes['strand'] != "-"]
+genes_neg = genes[genes['strand'] != "+"]
+                    
+### Use pybedtools to filter intragenic bidirections using segregated fstitch and gene data
+# First create 'BedTool' objects from dataframes
+                    
+bt_genes = BedTool.from_dataframe(genes)
+bt_genes_pos = BedTool.from_dataframe(genes_pos)
+bt_genes_neg = BedTool.from_dataframe(genes_neg)
+bt_fs_pos = BedTool.from_dataframe(fs_pos)
+bt_fs_neg = BedTool.from_dataframe(fs_neg)
+bt_nogenes_fs_pos = bt_fs_pos.subtract(bt_genes)
+bt_nogenes_fs_neg = bt_fs_neg.subtract(bt_genes)
+
+print('Detecting intragenic bidirectionals.....')
+ 
+# Intersect segements on opposite strand genes                    
+                    
+pos_bidirs = bt_genes_pos.intersect(bt_fs_neg, wb=True)
+pos_bidirs = pos_bidirs.sort()
+pos_bidirs = pos_bidirs.merge()
+                    
+neg_bidirs = bt_genes_neg.intersect(bt_fs_pos, wb=True)
+neg_bidirs = neg_bidirs.sort()
+neg_bidirs = neg_bidirs.merge()
+
+# Get rid of duplicates over isoforms and expand regions
+
+pos_bidirs = BedTool.to_dataframe(pos_bidirs)
+pos_bidirs = pos_bidirs.drop_duplicates(subset=['start', 'end'])
+pos_bidirs['end'] = pos_bidirs['end'] + (pos_bidirs['end'] - pos_bidirs['start'])
+
+neg_bidirs = BedTool.to_dataframe(neg_bidirs)
+neg_bidirs = neg_bidirs.drop_duplicates(subset=['start', 'end'])
+neg_bidirs['start'] = neg_bidirs['start'] - (neg_bidirs['end'] - neg_bidirs['start'])
+
+intragenic_bidirs = pd.concat([pos_bidirs, neg_bidirs])
+                      
+print('Detecting intergenic bidirectionals.....')
+                      
+### Get all other bidirectionals (intergenic)
+                      
+bd1 = bt_fs_neg.intersect(bt_fs_pos, wo=True)
+bd1 = BedTool.to_dataframe(bd1)
+bd1 = bd1.drop(columns = ['name', 'score', 'strand', 'thickEnd', 'itemRgb', 'end'])
+bd1.columns = ['chrom', 'start', 'end']
+
+bd2 = bt_fs_neg.intersect(bt_fs_pos)
+bd2 = BedTool.to_dataframe(bd2)
+bd2 = bd2.drop(columns = ['name'])
+
+bd3 = bt_nogenes_fs_neg.intersect(bt_nogenes_fs_pos, wo=True)
+bd3 = BedTool.to_dataframe(bd3)
+bd3 = bd3.drop(columns = ['name', 'score', 'strand', 'thickEnd', 'itemRgb', 'end'])
+bd3.columns = ['chrom', 'start', 'end']
+
+concat_intergenic_bidirs = pd.concat([bd1, bd2, bd3])
+                      
+bt_concat_intergenic_bidirs = BedTool.from_dataframe(concat_intergenic_bidirs)
+bt_intergenic_bidirs = bt_concat_intergenic_bidirs.subtract(bt_genes, A=True)
+intergenic_bidirs = BedTool.to_dataframe(bt_intergenic_bidirs)
+
+### Now that we have both intragenic and intergenic bidirectionals, it's time to filter and merge based on size                      
+                      
+df = pd.concat([intergenic_bidirs, intragenic_bidirs])
+df['diff'] = df.end - df.start                    
+
+print('Filtering bidirectionals by length.....')                      
+
+# This is controled by parameter 'l' currently. Should the following filters be based on this parameter, as well...?
+
+df = df[df['diff'] <= (args.bidir_length)]
+
+# These steps merge based on size. Do not want to merge large things with small things... this ends up mering all discrete calls with gene/lcnRNA/superenhancer calls
+
+df1 = df[(df['diff'] <= 12000) & (df['diff'] > 100)]
+bt_df1 = BedTool.from_dataframe(df1)
+bt_df1 = bt_df1.sort().merge()
+df1 = BedTool.to_dataframe(bt_df1)
+
+df2 = df[df['diff'] > 12000]
+bt_df2 = BedTool.from_dataframe(df2)
+bt_df2 = bt_df2.sort().merge()
+df2 = BedTool.to_dataframe(bt_df2)
+                      
+dff = pd.concat([df1, df2])
+dff = BedTool.from_dataframe(dff)
+dff = dff.sort()
+dff = BedTool.to_dataframe(dff)
+dff['id'] = dff.index + 1
+dff['id'] = 'bidir_' + dff['id'].astype(str)
+dff['length'] = dff.end - dff.start
+dff.to_csv((args.output), sep="\t", header=None, index=False)
+
+# Print stats
+
+stat_name = ['footprint', 'max_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs']
+stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff.index)]
+    
+stats = pd.DataFrame([stat_name, stat_value])
+stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
+                      
+if args.gen_plot:
+    print('Generating a histogram for bidirectional lengths...')
+    print('Mean length: ', dff['length'].mean())
+    print('Median length: ', dff['length'].median())
+    
+    plot = dff
+    
+    ch = chartify.Chart(blank_labels=True, y_axis_type='density')
+    ch.set_title("All bidirectional Lengths")
+    ch.set_subtitle("")
+    ch.plot.histogram(
+           data_frame=plot,
+           values_column='length',
+           bins=50)
+    ch.save(rootname + '.length_hist.html')
+                       
+    plot = plot[plot['length'] < 10000]
+    print('Adjusted mean length: ', plot['length'].mean())
+    print('Adjusted median length: ', plot['length'].median())
+    
+    ch = chartify.Chart(blank_labels=True, y_axis_type='density')
+    ch.set_title("Bidirectional Lengths < 10000")
+    ch.set_subtitle("")
+    ch.plot.histogram(
+           data_frame=plot,
+           values_column='length',
+           bins=50)
+    ch.save(rootname + '.filtered_length_hist.html')
+                      
+print('Bidirectional module complete.\n' + str(datetime.datetime.now()))
+sys.exit(0)
+
+
+if __name__=='__main__':
+    main()
