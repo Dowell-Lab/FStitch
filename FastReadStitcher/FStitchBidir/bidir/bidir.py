@@ -23,6 +23,9 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', dest='output', metavar='SAMPLE.BED', \
                         help='Directory where output BED file, stats, and plots will be saved. Full path and file extension for the BED file must be specified.', required=True)
     
+    parser.add_argument('-tss', '--removetss', dest='tss_remove', action='store_true', \
+                        help='Remove bidirectionals that fall directly over a gene transcription start site. Default = False', default=False, required=False)
+    
     parser.add_argument('-s', '--split', dest='split', action='store_true', \
                         help='Split files into short and long bidirectionals. Default = False', default=False, required=False)
     
@@ -76,7 +79,7 @@ fstitch_seg_file = fstitch_seg_file.drop(columns= ['activity' , 'igv_tag' , 'CI'
 pd.options.mode.chained_assignment = None
 
 fs_neg = fstitch_seg_file[fstitch_seg_file['strand'] != "+"]
-fs_neg['end'] = fs_neg.end + args.footprint
+fs_neg['end'] = fs_neg.end + int(args.footprint)
 
 fs_pos = fstitch_seg_file[fstitch_seg_file['strand'] != "-"]
 
@@ -89,6 +92,15 @@ genes.columns = ['chromosome', 'start', 'end', 'id' , 'identifier', 'strand']
 genes = genes.drop(columns= ['identifier'])
 genes_pos = genes[genes['strand'] != "-"]
 genes_neg = genes[genes['strand'] != "+"]
+
+if(args.tss_remove):
+    print('Parsing transcription start sites.....')
+    genes_pos_tss = genes_pos
+    genes_pos_tss.end = genes_pos.start + 1
+    genes_neg_tss = genes_neg
+    genes_neg_tss.start = genes_neg.end - 1
+    
+    genes_tss = pd.concat([genes_neg_tss, genes_pos_tss])
                     
 ### Use pybedtools to filter intragenic bidirections using segregated fstitch and gene data
 # First create 'BedTool' objects from dataframes
@@ -175,9 +187,16 @@ bt_df2 = bt_df2.sort().merge()
 df2 = BedTool.to_dataframe(bt_df2)
                       
 dff = pd.concat([df1, df2])
-dff = BedTool.from_dataframe(dff)
-dff = dff.sort()
-dff = BedTool.to_dataframe(dff)
+bt_dff = BedTool.from_dataframe(dff)
+bt_dff = bt_dff.sort()
+
+# Optionally remove bidirectionals that fall directly over a tss
+
+if(args.tss_remove):
+    bt_genes_tss = BedTool.from_dataframe(genes_tss)
+    bt_dff = bt_dff.subtract(bt_genes_tss, A=True)
+
+dff = BedTool.to_dataframe(bt_dff)
 dff['id'] = dff.index + 1
 dff['id'] = 'bidir_' + dff['id'].astype(str)
 dff['length'] = dff.end - dff.start
