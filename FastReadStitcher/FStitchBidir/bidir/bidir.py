@@ -176,7 +176,7 @@ dff.to_csv((args.output), sep="\t", header=None, index=False)
 # Save options : split file based on a length (-ls)
 # Print stats
 
-if args.split_length:
+if args.split:
     print('Splitting output into short and long bidirectionals...')
     
     dff_short = dff[dff['length'] <= int(args.split_length)]
