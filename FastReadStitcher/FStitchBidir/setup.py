@@ -27,7 +27,7 @@ setup(name='FStitchBidir',
         'Programming Language :: Python :: 3'
       ],
       
-keywords='bioinformatics genomics chromatin ATAC-seq motif transcription_factor',
+keywords='bioinformatics genomics eRNA enhancers regulation binding RNAPII polymerase GRO-seq PRO-seq motif transcription_factor',
 
     package_dir={'bidir' : 'bidir'},
     packages=['FStitchBidir'],
