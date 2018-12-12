@@ -5,6 +5,7 @@ Fast Stitch Reader (FStitch) rapidly processes read coverage files into contigs 
 * Better annotate 5' and 3' ends of genes for differential transcription analysis and Tfit RNAPII modeling
 * Filter regions of active transcriptional activity for downstream application (i.e. Tfit bidirectional predictions for enhancer identification)
 * Differentiate and analyze genome-wide coverage of active transcription between treatment types
+* Annotate bidirectional transcripts for differential transcription and motif displacement analayses
 
 The following is an example of FStitch output:
 
@@ -12,16 +13,9 @@ The following is an example of FStitch output:
 
 *Integrative Genomics Viewer (IGV) snap shot demonstrates the annotations obtained using FStitch. Color ‘green’ indicates regions of inactive transcription (signal is not singificantly above background "noise"). Color ‘blue’ represents active transcription on the forward (pos) strand and ‘red’ on the reverse (neg) strand.*
 
-## General Usage
-Here are the minimal commands needed to run FStitch from start to finish; for greater detail on usage and file types see below. 
-```
-$ FStitch train -b </path/to/sample.bedGraph> -s (+/-) -t </path/to/TrainingFile>  -o </path/to/Parameters.hmminfo>
-
-$ FStitch segment -b </path/to/sample.bedGraph> -s (+/-) -p </path/to/Parameters.hmminfo> -o </path/to/segmentFile.bed>
-```
 
 ## System Requirements
-FStitch is written in the C++ programming language, with C++11 support and uses OpenMP<sup>4</sup> to support multi-threading.  With this in mind, users will need to have a GCC compilers later than version 4.7 and < 7.1.0 to compile and run FStitch. To check you compiler version, 
+The `train` and `segment` modules of FStitch are written in C++ whereas the extension `bidir` module is written in Python.  With this in mind, users will need to have Python 3 and a GCC compiler later than version 5.4 to compile and run FStitch. To check you compiler version in \*nix, enter the following into the command line: 
 ```
 $ gcc —-version
 $ g++ —-version
@@ -30,13 +24,37 @@ Note, for those running FStitch on a compute cluster, commonly you will need to 
     
 ### Setup
 
-Download the FastReadStitcher/ directory from this url or clone to your local machine. If your compiler is up to date, you can compile FStitch by moving into the FastReadStitcher/ directory and running 
+Download the FastReadStitcher/ directory from this url or clone to your local machine. If your compiler is up to date, you can compile FStitch by moving into the cloned repository directory and running
+
 ```
 $ sh setup.sh
 =========================================
 Sucessfully Compiled
 ```
+
 In short, the setup.sh just runs “make clean” and "make" in the src/ directory. If everything compiles, you should see "Sucessfully Compiled" at the end. Importantly, you will now see the executable “FStitch” in the src directory.
+
+The `bidir` extension is written in Python 3, and the module and its requirements are most easily installed using pip
+
+```
+pip3 install FStitch-Bidir --user
+```
+
+Alternatively, the user can run setup.py located in the /FStitch/bidir directory as follows:
+
+```
+$ python3 setup.py
+```
+
+## General Usage
+Here are the minimum commands needed to run FStitch from start to finish; for greater detail on usage and file types see below. 
+```
+$ FStitch train -b </path/to/sample.bedGraph> -s (+/-) -t </path/to/TrainingFile>  -o </path/to/Parameters.hmminfo>
+
+$ FStitch segment -b </path/to/sample.bedGraph> -s (+/-) -p </path/to/Parameters.hmminfo> -o </path/to/segmentFile.bed>
+
+$ bidir -b </path/to/sample.bedGraph> -g </path/to/gene_annotations.bed> -o </path/to/bidir_annotations.bed>
+```
 
 ## Running FStitch
 
@@ -174,7 +192,7 @@ FStitch `segment` uses the parameters obtained from `train` (from above, \</path
 |-b  --bedgraph     | \</path/to/sample.bedGraph>           |BedGraph File Format from above
 |-s  --strand       | \<+/->                                |Specifes which strand (pos/neg) you wish to segment <br> **NOTE: You can only segment on ONE strand at a time!**</br>
 |-p  --params       | \</path/to/Parameters.hmminfo>        |Training parameters prduced from train module
-|-o  --output       | \</path/to/segmentFile.bed>           |Your output segmentFile.bed (BED9 format)
+|-o  --output       | \</path/to/segFile.bed>               |Your output segmentFile.bed (BED9 format)
 
 **Optional Arguments**
 
@@ -184,13 +202,49 @@ FStitch `segment` uses the parameters obtained from `train` (from above, \</path
 
 An example of the command is therefore:
 
-    $ FStitch segment -b </path/to/bedGraphFile> -s (+/-) -p </path/to/Parameters.hmminfo> -o </path/to/segmentFile.bed>
+    $ FStitch segment -b </path/to/bedGraphFile> -s (+/-) -p </path/to/Parameters.hmminfo> -o </path/to/segFile.bed>
 
 This will produce a file called segmentFile.bed, and can be imported into any genome browser)
 
 Note you can use your parameter out file from FStitch train (i.e. Parameters.hmminfo) to segment other datasets in the same series of samples from an experiment. In fact, using the same parameter out file will gurantee consistency and comparibility across datasets, so this is encouraged. 
 
 *That said*, remember that FStitch attempts to discern "noise" from "signal". Therefore, if you have a sample that has low complexity (i.e. it is difficult to distinguish signal from noise), you may either want to train using other samples, perform deeper sequencing on this sample (i.e. obtain a technical replicate -- this may be especially necessary depending on your downstream analysis interests), or train this sample separately (reduces strength of a statistical comparison between samples). As such, sample of comperable complexity and read depth will typically behave the best in FStitch.
+
+## FStitch bidir
+
+The FStitch `bidir` extension module uses the output from `segment` to annotate regions of bidirectional transcripts. The positive and negative strand data generated from `segment` needs to be concatenated and sorted using BEDTools prior to running the `bidir` module which can be achieved as follows:
+
+```
+$ cat segFile.pos.bed segFile.neg.bed | sortBed > segFile.cat.bed
+```
+
+The following are the required and optional arguments:
+
+**Required Arguments**
+
+|Flag|Type|Desription|
+|----|----|----------|
+|-b  --bed         | \</path/to/segFile.cat.bed>           |Concatenated pos/neg strand output from segment module.
+|-g  --genes       | \</path/to/gene_annotations.bed>      |Path to gene annotations (e.g. RefSeq gene annotations, BED format).
+|-o  --output      | \</path/to/bidirs.bed>                |Path and filename for bidir module output (BED format).
+
+**Optional Arguments**
+
+|Flag|Type|Desription|
+|----|----|----------|
+|-tss  --removetss   |                |Adding this flag will remove transcription start sites from output. Default = False
+|-s    --split       |                |This will split the output into additional short and long bidirectionals. Default = False
+|-f    --footprint   | \<Integer>     |The footprint is a gap between positive and negative reads. <br>This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. </br></br> This value should likely be increased for lower complexity data and will have minimal effect for high complexity data.</br><br> Default = 300.</br>
+|-lg   --mergelength | \<Integer>     |Length (in bp) for short/long merge length.<br> Short and long calls are segregated and merged separately to prevent short calls from being merged into long bidirectional regions (e.g. superenhancers, unanoated genes/lncRNAs).</br><br> Default=12000</br>
+|-lm   --maxlength   | \<Integer>     |Integer value (in bp) for max reported bidirectional length. Default=25000
+|-ls   --splitlength | \<Integer>     |Choose length (in bp) for short/long bidirectional file split. Only an option if -s flag is specified. Default=8000
+|-p    --plotdidirs  |                |Generate a histogram plot for bidirectional lengths. Default = False
+
+The minimum arguments are therefore as follows:
+
+```
+$ bidir -b </path/to/sample.bedGraph> -g </path/to/gene_annotations.bed> -o </path/to/bidir_annotations.bed>
+```
 
 ## Cite
 If you find the Fast Read Stitcher program useful for your research please cite:
