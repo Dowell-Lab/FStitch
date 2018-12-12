@@ -129,6 +129,75 @@ The segments do not need to be in any order and can be from any chromosome, howe
 
 **Very important**: If FStitch is being used on stranded data, the bedGraph file used in the `train` must correspond to the strand indicated in the *TrainingFile.bed*. For example, if the strand in the training file comes from the forward strand but the user supplies a bedGraph file that is on the reverse strand, then learned parameters will not be accurate. 
 
+### Training File Options : Using provided annotations or manually annotating samples
+
+There are two options provided in producing a training file for FStitch:
+1. Use the pre-configured 'univerisal' training file provided (only available for hg38 currently)
+2. Manually annotating active/inactive regions for your sample
+
+The simplest approach (option 1) to training is to utilize the pre-configured training file (in FStitch/train).  The pre-configured training file, available for the human genome version hg38 only, contains annotations of twenty ubiquitously expressed genes and twenty intergenic regions on the sense (pos/+) strand. In our experience, these regions provide reasonable initial training for most high quality data sets, e.g. sufficiently complex and sequenced to appropriate depth.  However, custom training data (described below) typically improves FStitch performance. 
+
+When using the pre-configured training data, it is recommended that the user first check that the default regions regions have adequate coverage in their specific dataset using BEDTools genomecov:
+
+```
+$ bedtools genomecov -bams [SAMPLE BAMS] -bed hg38_annotations.bed > sampleCoverage.bed
+```
+
+Regions of zero read coverage should be removed, but care should be taken not to remove too many regions as this dramatically reduces training effectiveness.  We recommend that no more than 5 "OFF" and 5 "ON", for a total of ten regions, can be discarded.  In our experience, the pre-configured training data is effective when all "active" regions have coverage and the overall read depth over "active" and "inactive" regions is over 10:1 after normalizing for bin size (total reads /(end-start)).  If the pre-configured training file fails these standards, the sample should be assessed for quality as the data may have insufficient sample depth or complexity.
+
+For best results, a custom training file should be created.  The training data file can be generated from scratch or build upon the provide pre-configured training set.   We will describe both methods and provide recommendations regarding its construction. 
+
+Creating a training dataset from scratch requires identifying regions of both "active" and "inactive" signal within the data.   For this, we recommend utilizing the Broad's Integrative Genomics Viewer (IGV).   While you can import mapped read files (typically BAM or bedGraph files) directly into IGV, numerous large files can decrease IGV's performance.   As such, we recommend that the user convert the bedGraph file to TDF format, which is a binary form of the bedGraph tailored for faster access. To convert the bedGraph to a TDF, utilize IGV tools with the following command: 
+
+```
+$ igvtools toTDF SRR.cat.bedGraph SRR.cat.tdf genome.chrom.sizes 
+```
+
+where the file genome.chrome.sizes is a chromosome size file that corresponds to the genome to which your samples were mapped, obtained either from UCSC or provided with IGV tools.  Alternatively, you may convert the bedGraph within the IGV browser by selecting: 
+ 
+```
+Tools --> Run igvtools ... 
+```
+
+from the top drop-down menu and specifying the same minimum arguments used in the command above. 
+
+Once the samples have been converted to TDF format and loaded into IGV, it is best practice to begin by looking at annotated genes that are highly expressed in the data of interest to become familiar with the typical read distribution patterns of "active" regions compared to "inactive" (or noise) regions.  It is recommended that the user select between 15-20 inactive regions and 15-20 active regions.
+
+While the user can build the required BED4 file manually, it is also possible to take advantage of IGV's built in capacity for collecting a table of regions.   The coordinates for the current field of view within IGV can be added to an ongoing list using the top down menu:
+
+```
+Regions --> Region Navigator ...
+```
+
+which will open a table with the necessary four columns: chromosome, start, end, and description. By clicking the "Add" button at the top, the current region shown will be added (chromosome, start and end) with the "Description" column remaining empty.  In this description column, the user must add the status of the region, either a "0" or "1" for inactive ("OFF) or active ("ON) transcription respectively.  Once multiple regions have been added to the table, the set of annotations can be exported by selecting:
+
+```
+Regions --> Export Regions ...
+```
+
+and choosing where to save the training file and under what to name (must end in .bed). The file will be saved in the required BED4 format, so no further editing is required before running FStitch `train`.  Likewise, the pre-configured training regions file can be imported into IGV by going to the top drop-down menu in the program and selecting:
+
+```
+Regions --> Import Regions ...
+```
+
+Regions can then be added, edited, or removed from the list to tailor the training file to your specific data using the Region Navigator, as described previously.
+
+#### Training Tips
+
+Annotating regions of "active/singal" and "inactive/noise" transcription ("ON" and "OFF") and generating a desirable training file typically requires a little bit of trial-and-error. That said, the following are some tips to expedite the learning process.
+
+##### Avoid "over-fitting"
+If your aim is to segment your sample into long contigs (e.g. for improving 5' and 3' gene annotation), it is best **not to over-fit**, or in other words provide too many training examples. If you provide >40 regions, you will get noticably larger BED file output files as a result of increasing the number of segments, or "contigs". In other words, the more regions you prodide, the more you simply obtain regions where coverage = 0 is "OFF" and any coverage > 0 is "ON". We don't need FStitch to give us this information.
+
+##### Try to pick large training regions
+If you annotate training regions that are <1000bp, there will likely not be enough annotated regions of coverage in the given bedGraph file to accurately calculate the LR coefficients. Try to pick a mixture of regions between 1b and 50kb for training.
+
+##### Do not pick "dead zones"
+For regions you annotate as "OFF", be sure to include regions that have some background signal, or "noise". Remember, you will be training using your bedGraph file, so if you pick regions that have "0" coverage and you followed the instructions above for coverage file formatting, you will not be providing FStitch any regions to assess. FStitch will try to account for data "gapiness" or the distance between read coverage regions, and therefore the more "background" (think of ChIP input controls) you can provide it, the better FStich will be able to distinguish the "noise" from the "activity".
+
+### Running the module
+
 Running FStitch train is simple once you have your coverage data in the correct format and have created the training file above. The following is a description of arguments:
 
 **Required Arguments**
@@ -169,19 +238,6 @@ HMM Transition Parameter         :0.933049,0.066951,0.021232,0.978768
 ~
 ```
 
-### Training Tips
-
-Annotating regions of "active/singal" and "inactive/noise" transcription ("ON" and "OFF") and generating a desirable training file typically requires a little bit of trial-and-error. That said, the following are some tips to expedite the learning process.
-
-##### Avoid "overtraining"
-If your aim is to segment your sample into long contigs (e.g. for improving 5' and 3' gene annotation), it is best **not to overtrain**, or in other words provide too many training examples. If you provide >40 regions, you will get noticably larger .bed output files as a result of increasing the number of segments, or "contigs". In other words, the more regions you prodide, the more you simply obtain regions where coverage = 0 is "OFF" and any coverage > 0 is "ON". We don't need FStitch to give us this information.
-
-##### Try to pick large training regions
-If you annotate training regions that are <1000bp, there will likely not be enough annotated regions of coverage in the given bedGraph file to accurately calculate the LR coefficients. Try to pick a mixture of regions between 1b and 50kb for training.
-
-##### Do not pick "dead zones"
-For regions you annotate as "OFF", be sure to include regions that have some background signal, or "noise". Remember, you will be training using your bedGraph file, so if you pick regions that have "0" coverage and you followed the instructions above for coverage file formatting, you will not be providing FStitch any regions to assess. FStitch will try to account for data "gapiness" or the distance between read coverage regions, and therefore the more "background" (think of ChIP input controls) you can provide it, the better FStich will be able to distinguish the "noise" from the "activity".
-
 ## FStitch segment
 FStitch `segment` uses the parameters obtained from `train` (from above, \</path/to/Parameters.hmminfo>) as input, as well as the original bedGraph file. A description of the arguments are given below.
 
@@ -212,7 +268,7 @@ Note you can use your parameter out file from FStitch train (i.e. Parameters.hmm
 
 ## FStitch bidir
 
-The FStitch `bidir` extension module uses the output from `segment` to annotate regions of bidirectional transcripts. The positive and negative strand data generated from `segment` needs to be concatenated and sorted using BEDTools prior to running the `bidir` module which can be achieved as follows:
+The FStitch `bidir` extension module (beta version) uses the output from `segment` to annotate regions of bidirectional transcripts. The positive and negative strand data generated from `segment` needs to be concatenated and sorted using BEDTools prior to running the `bidir` module which can be achieved as follows:
 
 ```
 $ cat segFile.pos.bed segFile.neg.bed | sortBed > segFile.cat.bed
@@ -231,10 +287,10 @@ The following are the required and optional arguments:
 **Optional Arguments**
 
 |Flag|Type|Desription|
-|----|----|----------|
+|-------|----|----------|
 |-tss  --removetss   |                |Adding this flag will remove transcription start sites from output. <br>Default = False</br>
 |-s    --split       |                |This will split the output into additional short and long bidirectionals. <br>Default = False</br>
-|-f    --footprint   | \<Integer>     |The footprint is a gap between positive and negative reads. This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. This value should likely be increased for lower complexity data and will have minimal effect for high complexity data.<br> Default = 300.</br>
+|-f    --footprint   | \<Integer>     |The footprint is a gap between positive and negative reads, proposedly due to polymerase loading. This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. This value should likely be increased for lower complexity data and will have minimal effect for high complexity data.<br> Default = 300.</br>
 |-lg   --mergelength | \<Integer>     |Length (in bp) for short/long merge length.Short and long calls are segregated and merged separately to prevent short calls from being merged into long bidirectional regions (e.g. superenhancers, unanoated genes/lncRNAs).<br>Default=12000</br>
 |-lm   --maxlength   | \<Integer>     |Integer value (in bp) for max reported bidirectional length. <br>Default=25000</br>
 |-ls   --splitlength | \<Integer>     |Choose length (in bp) for short/long bidirectional file split. Only an option if -s flag is specified. <br>Default=8000</br>
@@ -245,6 +301,10 @@ The minimum arguments are therefore as follows:
 ```
 $ bidir -b </path/to/sample.bedGraph> -g </path/to/gene_annotations.bed> -o </path/to/bidir_annotations.bed>
 ```
+
+There are a number of optional arguments that allow the user to parse the output according to annotation length as well as adjust the length at which calls are merged. Long regions are merged separately from short regions to avoid losing discrimination of smaller bidirectional annotations. Annotated regions >8000bp tend to be indicative of unannotated genes, lncRNAs, and super-enhancers. If the user only intends to perform motif displacement analyses, it is recommended that these larger regions be segregated using the --split option. Furthermore, because many of these "short" and "long" bidirectionals will overlap as a result of separate merging, it is also recommended that the user merge all desired calls when performing differential transcription analysis so as not to drastically increase the degrees of freedom.
+
+While the annotated bidirectionals can be used for the aforementioned analyses, they can also be used as a rigorous prefilter for modeling bidirectionals using Tfit `model` (https://github.com/Dowell-Lab/Tfit) thereby serving as an alternative to the Tfit `prelim` module. This may be especially useful for long regions of super-enhancers as Tfit can model multiple bidirectionals, or predicted RNA polymerase (RNAP) loading sites, within a single annotated region. Furthermore, Tfit's `model` module will produce additional modeling parameters that will describe RNAP activity at the sites provided including loading, pausing, and elongation.
 
 ## Cite
 If you find the Fast Read Stitcher program useful for your research please cite:
