@@ -232,13 +232,13 @@ The following are the required and optional arguments:
 
 |Flag|Type|Desription|
 |----|----|----------|
-|-tss  --removetss   |                |Adding this flag will remove transcription start sites from output. Default = False
-|-s    --split       |                |This will split the output into additional short and long bidirectionals. Default = False
-|-f    --footprint   | \<Integer>     |The footprint is a gap between positive and negative reads. <br>This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. </br></br> This value should likely be increased for lower complexity data and will have minimal effect for high complexity data.</br><br> Default = 300.</br>
-|-lg   --mergelength | \<Integer>     |Length (in bp) for short/long merge length.<br> Short and long calls are segregated and merged separately to prevent short calls from being merged into long bidirectional regions (e.g. superenhancers, unanoated genes/lncRNAs).</br><br> Default=12000</br>
-|-lm   --maxlength   | \<Integer>     |Integer value (in bp) for max reported bidirectional length. Default=25000
-|-ls   --splitlength | \<Integer>     |Choose length (in bp) for short/long bidirectional file split. Only an option if -s flag is specified. Default=8000
-|-p    --plotdidirs  |                |Generate a histogram plot for bidirectional lengths. Default = False
+|-tss  --removetss   |                |Adding this flag will remove transcription start sites from output. <br>Default = False</br>
+|-s    --split       |                |This will split the output into additional short and long bidirectionals. <br>Default = False</br>
+|-f    --footprint   | \<Integer>     |The footprint is a gap between positive and negative reads. This function will add an integer value (in bp) to merge positive and negative segments that do not overlap. This value should likely be increased for lower complexity data and will have minimal effect for high complexity data.<br> Default = 300.</br>
+|-lg   --mergelength | \<Integer>     |Length (in bp) for short/long merge length.Short and long calls are segregated and merged separately to prevent short calls from being merged into long bidirectional regions (e.g. superenhancers, unanoated genes/lncRNAs).<br>Default=12000</br>
+|-lm   --maxlength   | \<Integer>     |Integer value (in bp) for max reported bidirectional length. <br>Default=25000</br>
+|-ls   --splitlength | \<Integer>     |Choose length (in bp) for short/long bidirectional file split. Only an option if -s flag is specified. <br>Default=8000</br>
+|-p    --plotdidirs  |                |Generate a histogram plot for bidirectional lengths. <br>Default = False</br>
 
 The minimum arguments are therefore as follows:
 
