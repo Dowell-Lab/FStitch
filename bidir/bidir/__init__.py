@@ -1,4 +1,4 @@
-import FStitch.bidir as bd
+import bidir.bidir as bd
 
 def bidir():
     bd.main()

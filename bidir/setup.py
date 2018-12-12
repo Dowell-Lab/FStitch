@@ -12,10 +12,10 @@ here = path.abspath(path.dirname(__file__))
 #with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 #    long_description = f.read()
 
-setup(name='FStitchBidir',
-      version='0.1',
+setup(name='FStitch-Bidir',
+      version='0.2',
       description='Annotates bidirections using FStitch segment data.',
-      url='http://github.com/storborg/funniest',
+      url='https://github.com/Dowell-Lab/FStitch',
       author='Margaret Gruca',
       author_email='margaret.gruca@colorado.edu',
       license='MIT',
@@ -30,7 +30,7 @@ setup(name='FStitchBidir',
 keywords='bioinformatics genomics eRNA enhancers regulation binding RNAPII polymerase GRO-seq PRO-seq motif transcription_factor',
 
     package_dir={'bidir' : 'bidir'},
-    packages=['FStitchBidir'],
+    packages=['bidir'],
 
     install_requires=[
         'argparse',
@@ -43,13 +43,13 @@ keywords='bioinformatics genomics eRNA enhancers regulation binding RNAPII polym
 
     entry_points={
         'console_scripts': [
-            'bidir=FStitch:bidir',
+            'bidir=bidir:bidir',
         ],
     },
 
     project_urls={
         'Bug Reports': 'https://github.com/Dowell-Lab/FStitch',
         'Source': 'https://github.com/Dowell-Lab/FStitch',
-        'Human RefSeq Gene Annotation Download': 'http://genome.ucsc.edu/cgi-bin/hgTables',
+        'Human RefSeq': 'http://genome.ucsc.edu/cgi-bin/hgTables',
     },
 )
