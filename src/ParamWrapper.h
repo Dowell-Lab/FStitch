@@ -38,7 +38,7 @@ class ParamWrapper
 public:
     string command;
     
-    bool train, segment, eRNA, exit;
+    bool train, segment, eRNA, exit, version;
     map<string, string> params;
     
     string outFileName;

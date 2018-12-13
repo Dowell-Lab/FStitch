@@ -21,6 +21,13 @@ int main(int argc, char* argv[]) {
         delete p;
         return 0;
     }
+    
+    if(p->version)
+    {
+        cout<<"1.1"<<endl;
+        delete p;
+        return 0;
+    }
 
     if(p->verbose)
     {

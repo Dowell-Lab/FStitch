@@ -139,6 +139,7 @@ void ParamWrapper::dumpValues()
     cout<<"train: "<<this->train<<endl;
     cout<<"segment: "<<this->segment<<endl;
     cout<<"exit: "<<this->exit<<endl;
+    cout<<"1.1"<<this->version<<endl;
 }
 
 //This just sets default parameters:
@@ -148,6 +149,7 @@ ParamWrapper::ParamWrapper()
     this->strand=STRAND_UNSPECIFIED;//STRAND_POSITIVE;
     this->report=REPORT_ON;
     this->exit=false;
+    this->version=false;
     this->train=false;
     this->segment=false;
     this->eRNA=false;
@@ -188,6 +190,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     //this->strand=STRAND_BOTH;
     this->report=REPORT_ON;
     this->exit=false;
+    this->version=false;
     this->train=false;
     this->segment=false;
     this->eRNA=false;
@@ -261,6 +264,12 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
             {
                 this->printUsage();
                 this->exit=true;
+                return;
+            }
+            
+            else if(!strcmp(prevCmd, "--version"))
+            {
+                this->version=true;
                 return;
             }
             
