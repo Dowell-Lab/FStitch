@@ -4,7 +4,7 @@ void ParamWrapper::printUsage()
 {
     //We're going to print this block the C way to save on time and pain:
     printf("=================================================================================================\n");
-    printf("Fast Stitch Reader (FStitch)\n");
+    printf("Fast Stitch Reader (FStitch) v 1.1\n");
     printf("----------------------------\n");
     printf("A machine learning algorithm tool used to determine regions of active transcription in sequencing a\n");
     printf("  data using log-likelihood regression LLR adjusted hidden Markov Model (HMM).\n\n");
@@ -113,7 +113,8 @@ void ParamWrapper::printUsage()
     printf("  -n || --threads <integer>     This specifies the number of processors to run on.\n");
     printf("                                 Default = 1\n\n");
     printf("==================================================================================================\n\n");
-    printf("  -h || --help                  Prints the help message\n\n");
+    printf("  -h || --help                  Prints the help message.\n");
+    printf("  --version                     Prints current version.\n\n");
     // Here again... these arguments don't really make sense in conjunction with the strand argument
     //printf("                        of all reads as a bed4 file.\n");
     //printf("  -rp <pos read BED4>   If -r is not specified, then this specifies the file\n");
@@ -146,15 +147,16 @@ void ParamWrapper::dumpValues()
 ParamWrapper::ParamWrapper()
 {
     this->commandLine="UNIT TEST FILE";
+    this->module="";
     this->strand=STRAND_UNSPECIFIED;//STRAND_POSITIVE;
     this->report=REPORT_ON;
     this->exit=false;
     this->version=false;
     this->train=false;
     this->segment=false;
-    this->eRNA=false;
+    //this->eRNA=false;
     this->verbose=true;
-    this->chip=false;
+    //this->chip=false;
     this->numProcs=1;
     //Set learning parameters:
     this->maxConvergenceIters=100;
@@ -176,26 +178,19 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     char *prevCmd;
     map<string, string>::iterator it;
     
-    this->commandLine="";
-    
-    for(i=0;i<argc;i++)
-    {
-        commandLine+=argv[i];
-        commandLine+=" ";
-    }
-    
     // Set default parameters:
     //Changed to STRAND_POSITIVE to work around bugs in contig generation.
     this->strand=STRAND_UNSPECIFIED;
+    this->module="";
     //this->strand=STRAND_BOTH;
     this->report=REPORT_ON;
     this->exit=false;
     this->version=false;
     this->train=false;
     this->segment=false;
-    this->eRNA=false;
+    //this->eRNA=false;
     this->verbose=false;
-    this->chip=false;
+    //this->chip=false;
     this->numProcs=1;
     
     this->readFileSplit=false;
@@ -212,42 +207,32 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     
     if(argc==1)
     {
-        printf("ERROR: arguments expected after command specification.\n");
-        printf("\n");
+        printf("Error: no arguments specified for module %s\n", argv[1]);
+        this->printUsage();
+        this->exit=true;
+        return;
+    }
+    
+    else if(argc==2)
+    {
+        printf("Error: Additional arguments required. See help for usage instructions\n.");
         this->exit=true;
         this->printUsage();
+        return;
+    }
+    
+    this->module=std::string(argv[1]);
+    
+    if(this->module!="train" && this->module!="segment")
+    {
+        printf("Invalid module specification: %s\n", argv[1]);
+        this->exit=true;
+        return;
+    }
+    
+    this->train=this->module=="train";
+    this->segment=this->module=="segment";
         
-        return;
-    }
-    
-    if(argc==2)
-    {
-        this->exit=true;
-        this->printUsage();
-        
-        return;
-    }
-    
-    // Determine what the command is:
-    if(!strcmp(argv[1], "segment"))
-    {
-        this->segment=true;
-    }
-    
-    else if(!strcmp(argv[1], "train"))
-    {
-        this->train=true;
-    }
-
-    else
-    {
-        printf("Error: command not specified. Please specify either 'train' \nor 'segment' immediately after the FStitch command.\n");
-        this->printUsage();
-        this->exit=true;
-
-        return;
-    }
-    
     // Segment the inputs into argument, value pairs:
     for(i=2;i<argc;i++)
     {
@@ -255,7 +240,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
         {
             prevCmd=argv[i];
             //Check to ensure that the argument is supposed to be able to work without additional parameters:
-            if(!strcmp(prevCmd, "-v"))
+            if(!strcmp(prevCmd, "--verbose"))
             {
                 this->verbose=true;
             }
@@ -267,22 +252,17 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
                 return;
             }
             
-            else if(!strcmp(prevCmd, "--version"))
+            else if((!strcmp(prevCmd, "-v"))||(!strcmp(prevCmd, "--version")))
             {
                 this->version=true;
                 return;
             }
-            
-            else if(!strcmp(prevCmd, "-chip"))
-            {
-                this->chip=true;
-            }
-        }
         
         else
         {
-            paramMap.insert(pair<string, string>(prevCmd, argv[i]));
+            paramMap.insert(std::pair<std::string, std::string>(prevCmd, argv[i]));
             prevCmd=NULL;
+        }
         }
     }
     
@@ -490,6 +470,6 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     this->params=paramMap;
     //That should probably do it.
     
-    printf("Strand specified (1 = Positive (+), 2 = Negative (-), 3 = both, 4 = unspecified): %d\n", this->strand);
+    //printf("Strand specified (1 = Positive (+), 2 = Negative (-), 3 = both, 4 = unspecified): %d\n", this->strand);
     //If, after all of this, we have an invalid mode:
 }

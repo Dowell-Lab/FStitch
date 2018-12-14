@@ -41,6 +41,7 @@ public:
     bool train, segment, eRNA, exit, version;
     map<string, string> params;
     
+    std::string module;
     string outFileName;
     //This represents the annotation file for train and
     //the the weights file for segment.
