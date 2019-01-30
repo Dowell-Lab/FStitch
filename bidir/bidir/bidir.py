@@ -187,6 +187,10 @@ def main():
     dropped_bidirs_long = df[(df['diff'] >= int(args.bidir_length))]
     df = df[df['diff'] <= int(args.bidir_length)]
     
+    # Make sure if we've gotten to this point that there are no negative values for start...
+    
+    df.loc[df['start'] < 0, 'start'] = 0
+    
 # These steps merge based on size. Do not want to merge large things with small things... this ends up mering all discrete calls with gene/lcnRNA/superenhancer calls
     
     df1 = df[(df['diff'] <= int(args.merge_length)) & (df['diff'] >= 100)]
