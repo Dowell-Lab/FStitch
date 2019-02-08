@@ -70,20 +70,23 @@ add_file_flag() {
     fi
 }
 
-#Construct docker and tfit commands
+#Construct docker and fstitch commands
 docker_command="docker run -ti --name=fstitch"
 fstitch_module=$1
 fstitch_command="FStitch $fstitch_module"
 
 # Set input directories
-add_file_flag -b "$bg" bg_dir
-add_file_flag --b "$bedgraph" bedgraph_dir
+add_file_flag -b "$b" bed_file
+add_file_flag --bedgraph "$bedgraph" bedgraph_dir
 add_file_flag -o "$o" output
-add_file_flag --o "$output" output_dir
+add_file_flag --output "$output" output_dir
 add_file_flag -t "$t" train
 add_file_flag --train "$train" train_file
 add_file_flag -p "$p" param_file
 add_file_flag --params "$params" parameter_file
+#add_file_flag --bed "$bed" fs_bed_file
+#add_file_flag -g "$g" gene_file
+#add_file_flag --genes "$genes" gene_ref_file
 
 #Set output directories
 #add_directory_flag -l "$l" logOut
@@ -98,11 +101,22 @@ add_file_flag --params "$params" parameter_file
 #Add additional required and optional flags if present
 add_fstitch_flag -s $s
 add_fstitch_flag --strand $strand
+add_fstitch_flag --split $split
 add_fstitch_flag -n $n
 add_fstitch_flag --threads $threads
 add_fstitch_flag --version $version
 add_fstitch_flag -h $h
 add_fstitch_flag --help $help
+#add_fstitch_flag -f $f
+#add_fstitch_flag --footprint $footprint
+#add_fstitch_flag -lg $lg
+#add_fstitch_flag --mergelength $mergelength
+#add_fstitch_flag -lm $lm
+#add_fstitch_flag --maxlength $maxlength
+#add_fstitch_flag -ls $ls
+#add_fstitch_flag --splitlength $splitlegnth
+#add_fstitch_flag -p $p
+#add_fstitch_flag --plotbidirs $plotbidirs
 
 # Upon construction, run docker command
 docker_command="$docker_command $REPOSITORY:$TAG $fstitch_command" 
