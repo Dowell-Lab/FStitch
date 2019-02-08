@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# This script was created by Cassidy Thompson of the BioFrontiers IT department as part of a collaboration between BioFroniters IT and the Dowell Lab. Currently maintained by Margaret Gruca of the Dowell Lab.
+
+#Run FStitch program inside a docker container
+REPOSITORY="biofrontiers/fstitch_tfit"
+TAG="latest"
+
+#Check if fstitch image is available, if not then download it.
+image_check="docker images | awk '{print \$1, \$2}' | grep -q '$REPOSITORY $TAG'"
+if ! $(eval $image_check); then
+    echo "FStitch image not found, downloading...."
+    docker pull $REPOSITORY:$TAG 
+fi
+
+#Define available flags and function to check if item is in options array 
+options=("b" "--bedgraph" "-o" "--output" "-s" "--strand" "-t" "--train" "--verson" "-p" "--params" "-n" "--threads" "-h" "--help")
+array_contains () {
+    local seeking=$1; shift
+    local in=1
+    for element; do
+        if [[ $element == $seeking ]]; then
+            in=0
+            break
+        fi
+    done
+    return $in
+}
+
+#Define flagged variables from arguments passed to script and allowed flags defined above
+option="undef"
+for arg in "$@"
+do
+    if [ $option != "undef" ]; then
+        printf -v $option "$arg"
+    fi
+    array_contains $arg "${options[@]}" && option=${arg//-} || option=undef
+done
+
+
+#Function for adding flag to fstitch command from arguments
+add_fstitch_flag() {
+    flag=$1
+    value=$2
+    if [ "$value" != "" ];then
+        fstitch_command="$fstitch_command $flag $value"
+    fi
+}
+
+## Shouldn't need this with current command setup
+#Function for adding flag to fstitch command and adapting docker/fstitch commands for use with directory flag
+#add_directory_flag() {
+#    flag=$1
+#    directory=$2
+#    container_directory=$3
+#    if [ "$directory" != "" ];then
+#        docker_command="$docker_command -v $directory:/$container_directory"
+#        fstitch_command="$fstitch_command $flag /$container_directory/"
+#    fi
+#}
+
+#Function for adding flag to tfit command and adapting docker/tfit commands for use with file flag
+add_file_flag() {
+    flag=$1
+    file=$2
+    container_directory=$3
+    if [ "$file" != "" ];then
+        docker_command="$docker_command -v $(dirname $file):/$container_directory"
+        fstitch_command="$fstitch_command $flag /$container_directory/$(basename $file)"
+    fi
+}
+
+#Construct docker and tfit commands
+docker_command="docker run -ti --name=fstitch"
+fstitch_module=$1
+fstitch_command="FStitch $fstitch_module"
+
+# Set input directories
+add_file_flag -b "$bg" bg_dir
+add_file_flag --b "$bedgraph" bedgraph_dir
+add_file_flag -o "$o" output
+add_file_flag --o "$output" output_dir
+add_file_flag -t "$t" train
+add_file_flag --train "$train" train_file
+add_file_flag -p "$p" param_file
+add_file_flag --params "$params" parameter_file
+
+#Set output directories
+#add_directory_flag -l "$l" logOut
+#add_directory_flag --logOut "$logOut" logOut_dir
+
+#Add optional input files
+#add_file_flag -s "$s" seg_file
+#add_file_flag --segment "$segment" segment_file
+#add_file_flag -bd "$bd" bd_file
+#add_file_flag --bidirs "$bidirs" bidirs_file
+
+#Add additional required and optional flags if present
+add_fstitch_flag -s $s
+add_fstitch_flag --strand $strand
+add_fstitch_flag -n $n
+add_fstitch_flag --threads $threads
+add_fstitch_flag --version
+
+# Upon construction, run docker command
+docker_command="$docker_command $REPOSITORY:$TAG $fstitch_command" 
+eval $docker_command
+docker stop fstitch
+docker rm fstitch
+
