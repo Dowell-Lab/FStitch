@@ -100,7 +100,9 @@ add_fstitch_flag -s $s
 add_fstitch_flag --strand $strand
 add_fstitch_flag -n $n
 add_fstitch_flag --threads $threads
-add_fstitch_flag --version
+add_fstitch_flag --version $version
+add_fstitch_flag -h $h
+add_fstitch_flag --help $help
 
 # Upon construction, run docker command
 docker_command="$docker_command $REPOSITORY:$TAG $fstitch_command" 
