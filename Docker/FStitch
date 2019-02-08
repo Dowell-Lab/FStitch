@@ -110,7 +110,7 @@ add_fstitch_flag -n $n
 add_fstitch_flag --threads $threads
 add_fstitch_flag --version $version
 add_fstitch_flag -h $h
-dd_fstitch_flag --help $help
+add_fstitch_flag --help $help
 add_fstitch_flag -f $f
 add_fstitch_flag --footprint $footprint
 add_fstitch_flag -lg $lg
