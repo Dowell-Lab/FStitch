@@ -208,7 +208,7 @@ def main():
     bt_dff = bt_dff.sort()
     dff = BedTool.to_dataframe(bt_dff)
     dff['id'] = dff.index + 1
-    dff['id'] = 'bidir_' + dff['id'].astype(str)
+    dff['id'] = 'BIDIR_' + dff['id'].astype(str)
     dff['length'] = dff.end - dff.start
     dff.to_csv((args.output), sep="\t", header=None, index=False)
     
@@ -223,7 +223,7 @@ def main():
         dff_long = dff[dff['length'] > int(args.split_length)]
         dff_long.to_csv((rootname + '.long.bed'), sep="\t", header=None, index=False)
     
-        stat_name = ['footprint', 'max_length', 'split_length' 'fstitch_pos_segs', 'fstitch_neg_segs', 'dropped_short_bidirs', 'dropped_long_bidirs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs']
+        stat_name = ['footprint', 'max_length', 'split_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'dropped_short_bidirs', 'dropped_long_bidirs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs']
         stat_value = [(args.footprint), (args.bidir_length), (args.split_length), len(fs_pos.index), len(fs_neg.index), len(dropped_bidirs_short.index), len(dropped_bidirs_long.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff_short.index), len(dff_long.index), len(dff.index)]
             
         stats = pd.DataFrame([stat_name, stat_value])
