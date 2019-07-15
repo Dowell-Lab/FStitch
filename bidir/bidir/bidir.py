@@ -50,21 +50,26 @@ def main():
     
     args = parser.parse_args()
     
+    try:
+        if os.stat(args.fstitch_seg_filename).st_size > 0:
+            print("Beginning Processing.....")
+        else:
+            raise ValueError("FStitch BED file is empty. Check your FStitch training file for errors occuring in FStitch segment module.")
+    except OSError:
+        raise ValueError("FStitch BED file missing ... exiting")  
+    
 
     if (int(args.bidir_length) <= int(args.merge_length)):
-            print ("Bidirectional max length cannot be less than the merge length.")
-            sys.exit()
-    
+            raise ValueError("Bidirectional max length cannot be less than the merge length.")
     elif (int(args.bidir_length) <= int(args.split_length)):
-            print("Bidirectional max length cannot be less than the split length.")
-            sys.exit()
+            raise ValueError("Bidirectional max length cannot be less than the split length.")
     else:
         print('Max bidirectional length set to:', args.bidir_length,'bp')
         print('Footprint set to:', args.footprint,'bp')
         print('Split length set to:', args.split_length,'bp')
         print(str(datetime.datetime.now()) + '\nStarting bidirectional caller.....')
     
-    fstitch_seg_file = pd.read_table((args.fstitch_seg_filename), header=None, skiprows=1, usecols=range(6))
+    fstitch_seg_file = pd.read_table((args.fstitch_seg_filename), header=None, usecols=range(6))
     genes = open(args.gene_ref)
     rootname = os.path.splitext(args.output)[0]
 
@@ -74,8 +79,7 @@ def main():
     
     fstitch_seg_file[3], fstitch_seg_file[6] = fstitch_seg_file[3].str.split('=', 1).str
     fstitch_seg_file.columns = ['chromosome', 'start', 'end', 'activity', 'igv_tag', 'strand', 'CI']
-    fstitch_seg_file = fstitch_seg_file[~fstitch_seg_file['activity'].isin(['OFF'])]
-    fstitch_seg_file = fstitch_seg_file.drop(columns= ['activity' , 'igv_tag' , 'CI'])
+    fstitch_seg_file = fstitch_seg_file[~fstitch_seg_file['activity'].isin(['OFF'])].drop(columns= ['activity' , 'igv_tag' , 'CI'])
     
 ### Parse the strands and 300bp to end of negative strand -- this acts as a pseduo bedtools '-d' flag or a 'footprint' value 
     
@@ -91,9 +95,8 @@ def main():
     
     print('Parsing gene reference information.....')
     
-    genes = pd.read_table((args.gene_ref), header=None, usecols=range(6))
-    genes.columns = ['chromosome', 'start', 'end', 'id' , 'identifier', 'strand']
-    genes = genes.drop(columns= ['identifier'])
+    genes = pd.read_table((args.gene_ref), header=None, usecols=[0,1,2,3,5], 
+                         names=['chromosome', 'start', 'end', 'id' , 'strand'])
     genes_pos = genes[genes['strand'] != "-"]
     genes_neg = genes[genes['strand'] != "+"]
     
@@ -121,15 +124,11 @@ def main():
      
 # Intersect segements on opposite strand genes                    
                         
-    pos_bidirs = bt_genes_pos.intersect(bt_fs_neg, wb=True)
-    pos_bidirs = pos_bidirs.sort()
-    pos_bidirs = pos_bidirs.merge()
+    pos_bidirs = bt_genes_pos.intersect(bt_fs_neg, wb=True).sort().merge()
                         
-    neg_bidirs = bt_genes_neg.intersect(bt_fs_pos, wb=True)
-    neg_bidirs = neg_bidirs.sort()
-    neg_bidirs = neg_bidirs.merge()
+    neg_bidirs = bt_genes_neg.intersect(bt_fs_pos, wb=True).sort().merge()
     
-# Get rid of duplicates over isoforms and expand regions
+# Get rid of duplicates over isoforms and expand regions (currently mirrored)
     
     pos_bidirs = BedTool.to_dataframe(pos_bidirs)
     pos_bidirs = pos_bidirs.drop_duplicates(subset=['start', 'end'])
@@ -146,17 +145,14 @@ def main():
 ### Get all other bidirectionals (intergenic)
                           
     bd1 = bt_fs_neg.intersect(bt_fs_pos, wo=True)
-    bd1 = BedTool.to_dataframe(bd1)
-    bd1 = bd1.drop(columns = ['name', 'score', 'strand', 'thickEnd', 'itemRgb', 'end'])
+    bd1 = BedTool.to_dataframe(bd1).drop(columns = ['name', 'score', 'strand', 'thickEnd', 'itemRgb', 'end'])
     bd1.columns = ['chrom', 'start', 'end']
     
     bd2 = bt_fs_neg.intersect(bt_fs_pos)
-    bd2 = BedTool.to_dataframe(bd2)
-    bd2 = bd2.drop(columns = ['name'])
+    bd2 = BedTool.to_dataframe(bd2).drop(columns = ['name'])
     
     bd3 = bt_nogenes_fs_neg.intersect(bt_nogenes_fs_pos, wo=True)
-    bd3 = BedTool.to_dataframe(bd3)
-    bd3 = bd3.drop(columns = ['name', 'score', 'strand', 'thickEnd', 'itemRgb', 'end'])
+    bd3 = BedTool.to_dataframe(bd3).drop(columns = ['name', 'score', 'strand', 'thickEnd', 'itemRgb', 'end'])
     bd3.columns = ['chrom', 'start', 'end']
     
     concat_intergenic_bidirs = pd.concat([bd1, bd2, bd3])
@@ -165,7 +161,7 @@ def main():
     bt_intergenic_bidirs = bt_concat_intergenic_bidirs.subtract(bt_genes, A=True)
     intergenic_bidirs = BedTool.to_dataframe(bt_intergenic_bidirs)
     
-### Now that we have both intragenic and intergenic bidirectionals, it's time to filter and merge based on size                      
+### Now that we have both intragenic and intergenic bidirectionals, it's time to filter and merge based on size
                           
     df = pd.concat([intergenic_bidirs, intragenic_bidirs])
     
@@ -173,8 +169,7 @@ def main():
     
     if(args.tss_remove):
         bt_genes_tss = BedTool.from_dataframe(genes_tss)
-        bt_df = BedTool.from_dataframe(df)
-        bt_df = bt_df.subtract(bt_genes_tss, A=True)
+        bt_df = BedTool.from_dataframe(df).subtract(bt_genes_tss, A=True)
         df = BedTool.to_dataframe(bt_df)
     
     df['diff'] = df.end - df.start
@@ -191,24 +186,21 @@ def main():
     
     df.loc[df['start'] < 0, 'start'] = 0
     
-# These steps merge based on size. Do not want to merge large things with small things... this ends up mering all discrete calls with gene/lcnRNA/superenhancer calls
+# These steps merge based on size. Do not want to merge large things with small things... this ends up merging all discrete calls with gene/lcnRNA/superenhancer calls
     
     df1 = df[(df['diff'] <= int(args.merge_length)) & (df['diff'] >= 100)]
-    bt_df1 = BedTool.from_dataframe(df1)
-    bt_df1 = bt_df1.sort().merge()
+    bt_df1 = BedTool.from_dataframe(df1).sort().merge()
     df1 = BedTool.to_dataframe(bt_df1)
     
     df2 = df[df['diff'] > int(args.merge_length)]
-    bt_df2 = BedTool.from_dataframe(df2)
-    bt_df2 = bt_df2.sort().merge()
+    bt_df2 = BedTool.from_dataframe(df2).sort().merge()
     df2 = BedTool.to_dataframe(bt_df2)
                           
     dff = pd.concat([df1, df2])
-    bt_dff = BedTool.from_dataframe(dff)
-    bt_dff = bt_dff.sort()
+    bt_dff = BedTool.from_dataframe(dff).sort()
     dff = BedTool.to_dataframe(bt_dff)
     dff['id'] = dff.index + 1
-    dff['id'] = 'bidir_' + dff['id'].astype(str)
+    dff['id'] = 'BIDIR_' + dff['id'].astype(str)
     dff['length'] = dff.end - dff.start
     dff.to_csv((args.output), sep="\t", header=None, index=False)
     
@@ -223,8 +215,8 @@ def main():
         dff_long = dff[dff['length'] > int(args.split_length)]
         dff_long.to_csv((rootname + '.long.bed'), sep="\t", header=None, index=False)
     
-        stat_name = ['footprint', 'max_length', 'split_length' 'fstitch_pos_segs', 'fstitch_neg_segs', 'dropped_short_bidirs', 'dropped_long_bidirs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs']
-        stat_value = [(args.footprint), (args.bidir_length), (args.split_length), len(fs_pos.index), len(fs_neg.index), len(dropped_bidirs_short.index), len(dropped_bidirs_long.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff_short.index), len(dff_long.index), len(dff.index)]
+        stat_name = ['footprint', 'max_length', 'split_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'dropped_short_bidirs', 'dropped_long_bidirs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs_short', 'total_bidirs_long', 'total_bidirs']
+        stat_value = [(args.footprint), (args.bidir_length), (args.split_length), len(fs_pos.index), len(fs_neg.index), len(dropped_bidirs_short.index), len(dropped_bidirs_long.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  int(round(dff['length'].mean())), int(round(dff['length'].median())), len(dff_short.index), len(dff_long.index), len(dff.index)]
             
         stats = pd.DataFrame([stat_name, stat_value])
         stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
@@ -232,15 +224,15 @@ def main():
     else:
     
         stat_name = ['footprint', 'max_length', 'fstitch_pos_segs', 'fstitch_neg_segs', 'dropped_short_bidirs', 'dropped_long_bidirs', 'intragenic_bidirs', 'intergenic_bidirs', 'mean_length', 'median_length', 'total_bidirs']
-        stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(dropped_bidirs_short.index), len(dropped_bidirs_long.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  round(dff['length'].mean()), round(dff['length'].median()), len(dff.index)]
+        stat_value = [(args.footprint), (args.bidir_length), len(fs_pos.index), len(fs_neg.index), len(dropped_bidirs_short.index), len(dropped_bidirs_long.index), len(intragenic_bidirs.index), len(intergenic_bidirs.index),  int(round(dff['length'].mean())), int(round(dff['length'].median())), len(dff.index)]
             
         stats = pd.DataFrame([stat_name, stat_value])
         stats.to_csv((rootname + '.stats.txt'), sep='\t', header=None, index=False)
                           
     if args.gen_plot:
         print('Generating a histogram for bidirectional lengths...')
-        print('Mean length: ', dff['length'].mean())
-        print('Median length: ', dff['length'].median())
+        print('Mean length: ', int(dff['length'].mean()))
+        print('Median length: ', int(dff['length'].median()))
         
         (chartify.Chart(blank_labels=True, y_axis_type='density')
         .plot.histogram(
@@ -254,8 +246,8 @@ def main():
         .save(rootname + '.length_hist.html'))
     
         dff_short = dff[dff['length'] <= int(args.split_length)]
-        print('Adjusted mean length: ', dff_short['length'].mean())
-        print('Adjusted median length: ', dff_short['length'].median())
+        print('Adjusted mean length: ', int(dff_short['length'].mean()))
+        print('Adjusted median length: ', int(dff_short['length'].median()))
         
         (chartify.Chart(blank_labels=True, y_axis_type='density')
         .plot.histogram(

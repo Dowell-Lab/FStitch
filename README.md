@@ -302,7 +302,19 @@ The minimum arguments are therefore as follows:
 $ bidir -b </path/to/sample.bedGraph> -g </path/to/gene_annotations.bed> -o </path/to/bidir_annotations.bed>
 ```
 
+#### Additional argument description
+
 There are a number of optional arguments that allow the user to parse the output according to annotation length as well as adjust the length at which calls are merged. Long regions are merged separately from short regions to avoid losing discrimination of smaller bidirectional annotations. Annotated regions >8000bp tend to be indicative of unannotated genes, lncRNAs, and super-enhancers. If the user only intends to perform motif displacement analyses, it is recommended that these larger regions be segregated using the --split option. Furthermore, because many of these "short" and "long" bidirectionals will overlap as a result of separate merging, it is also recommended that the user merge all desired calls when performing differential transcription analysis so as not to drastically increase the degrees of freedom.
+
+#### Stats file output format
+
+The stats file produce is tab-delimited with the following run information (in order from left to right):
+
+footprint, max length of bidir call, **split length (short and long calls)**, fstitch positive segments, fstitch negative segments, dropped short bidirs, dropped long bidirs, intragenic bidirs, intergenic bidirs, mean bidir length, median bidir length, **total "short" bidirs (based on split length if specified)**, **total "long" bidirs (based on split length if specified)**, total bidirectionals annotated
+
+where the bolded stats are only present if the used specifies the -s/--split argument.
+
+#### Usage in Tfit
 
 While the annotated bidirectionals can be used for the aforementioned analyses, they can also be used as a rigorous prefilter for modeling bidirectionals using Tfit `model` (https://github.com/Dowell-Lab/Tfit) thereby serving as an alternative to the Tfit `prelim` module. This may be especially useful for long regions of super-enhancers as Tfit can model multiple bidirectionals, or predicted RNA polymerase (RNAP) loading sites, within a single annotated region. Furthermore, Tfit's `model` module will produce additional modeling parameters that will describe RNAP activity at the sites provided including loading, pausing, and elongation.
 
