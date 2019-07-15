@@ -4,7 +4,7 @@ void ParamWrapper::printUsage()
 {
     //We're going to print this block the C way to save on time and pain:
     printf("=================================================================================================\n");
-    printf("Fast Stitch Reader (FStitch) v1.1\n");
+    printf("Fast Stitch Reader (FStitch) v1.1.1\n");
     printf("----------------------------\n");
     printf("A machine learning algorithm tool used to determine regions of active transcription in sequencing a\n");
     printf("  data using log-likelihood regression LLR adjusted hidden Markov Model (HMM).\n\n");
@@ -140,7 +140,7 @@ void ParamWrapper::dumpValues()
     cout<<"train: "<<this->train<<endl;
     cout<<"segment: "<<this->segment<<endl;
     cout<<"exit: "<<this->exit<<endl;
-    cout<<"1.1"<<this->version<<endl;
+    cout<<"1.1.1"<<this->version<<endl;
 }
 
 //This just sets default parameters:
