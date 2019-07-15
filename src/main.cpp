@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     
     if(p->version)
     {
-        cout<<"1.1"<<endl;
+        cout<<"1.1.1"<<endl;
         delete p;
         return 0;
     }
