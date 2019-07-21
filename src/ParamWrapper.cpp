@@ -4,7 +4,7 @@ void ParamWrapper::printUsage()
 {
     //We're going to print this block the C way to save on time and pain:
     printf("=================================================================================================\n");
-    printf("Fast Stitch Reader (FStitch) v 1.1\n");
+    printf("Fast Stitch Reader (FStitch) v1.1.1\n");
     printf("----------------------------\n");
     printf("A machine learning algorithm tool used to determine regions of active transcription in sequencing a\n");
     printf("  data using log-likelihood regression LLR adjusted hidden Markov Model (HMM).\n\n");
@@ -24,7 +24,7 @@ void ParamWrapper::printUsage()
     printf("  -s || --strand   <+/->         This specifies whether or not training should be\n");
     printf("                                 performed on either the positive strand, the\n");
     printf("                                 negative strand, or both. The default is 'both'\n");
-    printf("  -t || -train     <BED4>        This specifies a training input file containing information for\n");
+    printf("  -t || --train     <BED4>        This specifies a training input file containing information for\n");
     printf("                                 BOTH on and off annotations. The input should be a BED3 file\n");
     printf("                                 (chr, start, stop) with an on/off label. For example:\n\n");
     printf("                                 chr [tab] start [tab] stop [tab] 1 / 0 (on / off).\n");
@@ -114,7 +114,7 @@ void ParamWrapper::printUsage()
     printf("                                 Default = 1\n\n");
     printf("==================================================================================================\n\n");
     printf("  -h || --help                  Prints the help message.\n");
-    printf("  --version                     Prints current version.\n\n");
+    printf("  --version                     Prints current version (./FStitch [train/segment] --version).\n\n");
     // Here again... these arguments don't really make sense in conjunction with the strand argument
     //printf("                        of all reads as a bed4 file.\n");
     //printf("  -rp <pos read BED4>   If -r is not specified, then this specifies the file\n");
@@ -140,14 +140,13 @@ void ParamWrapper::dumpValues()
     cout<<"train: "<<this->train<<endl;
     cout<<"segment: "<<this->segment<<endl;
     cout<<"exit: "<<this->exit<<endl;
-    cout<<"1.1"<<this->version<<endl;
+    cout<<"1.1.1"<<this->version<<endl;
 }
 
 //This just sets default parameters:
 ParamWrapper::ParamWrapper()
 {
     this->commandLine="UNIT TEST FILE";
-    this->module="";
     this->strand=STRAND_UNSPECIFIED;//STRAND_POSITIVE;
     this->report=REPORT_ON;
     this->exit=false;
@@ -178,10 +177,17 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     char *prevCmd;
     map<string, string>::iterator it;
     
+    this->commandLine="";
+    
+    for(i=0;i<argc;i++)
+    {
+        commandLine+=argv[i];
+        commandLine+=" ";
+    }
+    
     // Set default parameters:
     //Changed to STRAND_POSITIVE to work around bugs in contig generation.
     this->strand=STRAND_UNSPECIFIED;
-    this->module="";
     //this->strand=STRAND_BOTH;
     this->report=REPORT_ON;
     this->exit=false;
@@ -207,32 +213,43 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
     
     if(argc==1)
     {
-        printf("Error: no arguments specified for module %s\n", argv[1]);
-        this->printUsage();
+        printf("Error: command not specified. Please specify either 'train' \nor 'segment' immediately after the FStitch command.\n");
+        printf("\n");
         this->exit=true;
+        this->printUsage();
+        
         return;
     }
     
-    else if(argc==2)
+    if(argc==2)
     {
         printf("Error: Additional arguments required. See help for usage instructions\n.");
         this->exit=true;
         this->printUsage();
-        return;
-    }
-    
-    this->module=std::string(argv[1]);
-    
-    if(this->module!="train" && this->module!="segment")
-    {
-        printf("Invalid module specification: %s\n", argv[1]);
-        this->exit=true;
-        return;
-    }
-    
-    this->train=this->module=="train";
-    this->segment=this->module=="segment";
         
+        return;
+    }
+    
+    // Determine what the command is:
+    if(!strcmp(argv[1], "segment"))
+    {
+        this->segment=true;
+    }
+    
+    else if(!strcmp(argv[1], "train"))
+    {
+        this->train=true;
+    }
+
+    else
+    {
+        printf("Error: command not specified. Please specify either 'train' \nor 'segment' immediately after the FStitch command.\n");
+        this->printUsage();
+        this->exit=true;
+
+        return;
+    }
+    
     // Segment the inputs into argument, value pairs:
     for(i=2;i<argc;i++)
     {
@@ -240,7 +257,7 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
         {
             prevCmd=argv[i];
             //Check to ensure that the argument is supposed to be able to work without additional parameters:
-            if(!strcmp(prevCmd, "--verbose"))
+            if(!strcmp(prevCmd, "-v"))
             {
                 this->verbose=true;
             }
@@ -252,17 +269,22 @@ ParamWrapper::ParamWrapper(int argc, char **argv)
                 return;
             }
             
-            else if((!strcmp(prevCmd, "-v"))||(!strcmp(prevCmd, "--version")))
+            else if(!strcmp(prevCmd, "--version"))
             {
                 this->version=true;
                 return;
             }
+            
+            else if(!strcmp(prevCmd, "-chip"))
+            {
+                this->chip=true;
+            }
+        }
         
         else
         {
-            paramMap.insert(std::pair<std::string, std::string>(prevCmd, argv[i]));
+            paramMap.insert(pair<string, string>(prevCmd, argv[i]));
             prevCmd=NULL;
-        }
         }
     }
     
