@@ -24,7 +24,12 @@ Note, for those running FStitch on a compute cluster, commonly you will need to 
     
 ### Setup
 
-Download the FastReadStitcher/ directory from this url or clone to your local machine. If your compiler is up to date, you can compile FStitch by moving into the cloned repository directory and running
+FStitch is now avilable via conda. To install via the conda package manager:
+```
+conda install -c dowell-lab fstitch
+```
+
+Alternatively, you can clone the FStitch repository. If your gcc compiler is up to date, you can compile FStitch by moving into the cloned repository directory and running
 
 ```
 $ sh setup.sh
