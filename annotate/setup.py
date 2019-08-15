@@ -39,8 +39,6 @@ keywords='bioinformatics genomics eRNA enhancers regulation binding RNAPII polym
         'pybedtools',
         'chartify',
         'pandas',
-        'subprocess',
-        'io',
     ],
 
     entry_points={
