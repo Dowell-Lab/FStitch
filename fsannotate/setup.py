@@ -13,7 +13,7 @@ here = path.abspath(path.dirname(__file__))
 #    long_description = f.read()
 
 setup(name='fstitch-annotate',
-      version='0.3.0',
+      version='0.3.2',
       description='Provides additional annotation tools using FStitch segment data.',
       url='https://github.com/Dowell-Lab/FStitch',
       author='Margaret Gruca',
@@ -29,8 +29,8 @@ setup(name='fstitch-annotate',
       
 keywords='bioinformatics genomics eRNA enhancers regulation binding RNAPII polymerase GRO-seq PRO-seq motif transcription_factor',
 
-    package_dir={'annotate' : 'annotate'},
-    packages=['annotate'],
+    package_dir={'fsannotate' : 'fsannotate'},
+    packages=['fsannotate'],
 
     install_requires=[
         'argparse',
@@ -43,14 +43,14 @@ keywords='bioinformatics genomics eRNA enhancers regulation binding RNAPII polym
 
     entry_points={
         'console_scripts': [
-            'bidir=annotate:bidir',
-            'expand=annotate:expand',            
+            'bidir=fsannotate:bidir',
+            'expand=fsannotate:expand',            
         ],
     },
 
     project_urls={
-        'Bug Reports': 'https://github.com/Dowell-Lab/FStitch',
-        'Source': 'https://github.com/Dowell-Lab/FStitch',
+        'Bug Reports': 'https://github.com/Dowell-Lab/FStitch/issues',
+        'Source': 'https://github.com/Dowell-Lab/FStitch/annotate',
         'Human RefSeq': 'http://genome.ucsc.edu/cgi-bin/hgTables',
     },
 )

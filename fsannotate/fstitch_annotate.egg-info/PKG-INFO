@@ -1,0 +1,19 @@
+Metadata-Version: 1.2
+Name: fstitch-annotate
+Version: 0.3.2
+Summary: Provides additional annotation tools using FStitch segment data.
+Home-page: https://github.com/Dowell-Lab/FStitch
+Author: Margaret Gruca
+Author-email: margaret.gruca@colorado.edu
+License: MIT
+Project-URL: Bug Reports, https://github.com/Dowell-Lab/FStitch/issues
+Project-URL: Source, https://github.com/Dowell-Lab/FStitch/annotate
+Project-URL: Human RefSeq, http://genome.ucsc.edu/cgi-bin/hgTables
+Description: UNKNOWN
+Keywords: bioinformatics genomics eRNA enhancers regulation binding RNAPII polymerase GRO-seq PRO-seq motif transcription_factor
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.6

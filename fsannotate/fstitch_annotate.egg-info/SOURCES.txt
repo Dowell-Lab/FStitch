@@ -1,0 +1,10 @@
+setup.py
+fsannotate/__init__.py
+fsannotate/bidir.py
+fsannotate/expand.py
+fstitch_annotate.egg-info/PKG-INFO
+fstitch_annotate.egg-info/SOURCES.txt
+fstitch_annotate.egg-info/dependency_links.txt
+fstitch_annotate.egg-info/entry_points.txt
+fstitch_annotate.egg-info/requires.txt
+fstitch_annotate.egg-info/top_level.txt
