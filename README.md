@@ -39,13 +39,15 @@ Sucessfully Compiled
 
 In short, the setup.sh just runs “make clean” and "make" in the src/ directory. If everything compiles, you should see "Sucessfully Compiled" at the end. Importantly, you will now see the executable “FStitch” in the src directory.
 
-The `bidir` extension is written in Python 3, and the module and its requirements are most easily installed using pip
+***NOTE: fstitch-bidir is now deprecated. The PyPi repo (fstitch-bidir) still exists for version control, but to install the latest version, FStitch bidir is now nested in fstitch-annotate with other submodules***
+
+The `fstitch-annotate` extension is written in Python 3, and the module and its requirements are most easily installed using pip
 
 ```
-pip3 install FStitch-Bidir --user
+pip3 install fstitch-annotate --user
 ```
 
-Alternatively, the user can run setup.py located in the /FStitch/bidir directory as follows:
+Alternatively, the user can run setup.py located in the /FStitch/fsannotate directory as follows:
 
 ```
 $ python3 setup.py
