@@ -38,6 +38,9 @@ def main():
     optional.add_argument('-r', '--radius', dest='radius', metavar='<RADIUS>', \
                        help='Radius around the transcription start site (TSS) for which counts will be generated to determine activity. Default = 1500 (Recommended).', default=1500, required=False, type=int)
     
+#    optional.add_argument('-d', '--distance', dest='merge_distance', metavar='<DISTANCE>', \
+#                       help='Distance (in bp) in which segment data will be merged (see BEDTools merge for additional details, same as -d argument). Default = 100 (Recommended).', default=100, required=False, type=int)    
+    
     optional.add_argument('-min', '--mincount', dest='count', metavar='<COUNT>', \
                        help='Minimum number of read counts for site to be considered "active". Depth/complexity of data may determine an adjustment. Default = 10.', default=10, required=False, type=int)    
     
@@ -76,28 +79,11 @@ def main():
     genes_tss.loc[genes_tss['strand'] == '+', 'start'] = genes_tss['start'] - RADIUS
     
     # Make sure there are no start values less than 0 and if so reset them to 0
-    genes_tss.loc[genes['start'] < 0, 'start'] = 0
-    genes_tss.loc[genes['end'] < 0, 'end'] = 0
+    genes_tss['start'] = np.where(genes_tss['start'] < 0, 0, genes_tss['start'])
+    genes_tss['end'] = np.where(genes_tss['end'] < 0, 0, genes_tss['end'])
     genes_tss.to_csv('%s/.%s_tss_file.bed' % (outdir, rootname), header=None, sep='\t', index=False)    ### Need to figure out a temp directory/file solution for these potentially
     
 #########################################################################################################    
-    
-#    fstitch_seg_file = pd.read_csv(args.fstitch_seg_file, header=None, usecols=range(6), sep='\t')
-#
-####### Format FStitch file
-#    
-#    print('Parsing strand information.....')
-#    
-#    fstitch_seg_file[3], fstitch_seg_file[6] = fstitch_seg_file[3].str.split('=', 1).str
-#    fstitch_seg_file.columns = ['chromosome', 'start', 'end', 'activity', 'igv_tag', 'strand', 'CI']
-#    fstitch_seg_file = fstitch_seg_file[~fstitch_seg_file['activity'].isin(['OFF'])].drop(columns= ['activity' , 'igv_tag' , 'CI'])
-#        
-#    ### Parse the strands and 300bp to end of negative strand -- this acts as a pseduo bedtools '-d' flag or a 'footprint' value 
-#        
-#    # Getting a warning here... believe it is a false positive but will triple check later. For now, we'll supress the warning output
-#    pd.options.mode.chained_assignment = None
-    
-######################################################################################################### 
     
 ##### Generate counts on the opposite strand to determine TSS
     # Need to check and make sure there won't be false negatives due to unidiretional TSS -- yet to see this but who knows. Can always set a flag to count on both strands
@@ -113,7 +99,8 @@ def main():
     countout,counterr = count.communicate()
     
     # Convert count output data to a dataframe, clean for CRAM related warnings, and drop anything with counts less than 10 (this can be a flag, too)
-
+    print("mutliBamCov stderr output:")
+    print(counterr)
     countdata = StringIO(str(countout,'utf-8'))
     count_df = pd.read_csv(countdata, sep='\t', header=None, \
                       names=['chr', 'start', 'end', 'gene', 'score', 'strand', 'count'])
@@ -149,6 +136,8 @@ def main():
                stderr=subprocess.STDOUT)
     
     subout,suberr = subtract.communicate()
+    print("subtractBed stderr output:")
+    print(suberr)
     
     subdata = StringIO(str(subout,'utf-8'))
     sub_df = pd.read_csv(subdata, sep='\t', header=None, index_col=False, \
@@ -166,12 +155,15 @@ def main():
 
 ##### Merge genes with FStitch regions
     regions = '%s/.%s_all_regions.bed' % (outdir, rootname)
+    #merge_d = args.merge_distance
     
-    merge = subprocess.Popen(['mergeBed', '-i', regions, '-s', '-d', '100', '-c', '4,6', '-o', 'collapse'],
+    merge = subprocess.Popen(['mergeBed', '-i', regions, '-s', '-d', '100' , '-c', '4,6', '-o', 'collapse'],
                stdout=subprocess.PIPE, 
                stderr=subprocess.STDOUT) 
     
     mergeout,mergeerr = merge.communicate()
+    print("mergeBed stderr output:")
+    print(mergeerr)
     
     mergedata = StringIO(str(mergeout,'utf-8'))
     merge_df = pd.read_csv(mergedata, sep='\t', header=None, \
@@ -185,12 +177,21 @@ def main():
     split_df.columns = ['gene', 'chr', 'start', 'end', 'strand'] # renaming "name" to gene
     unique_genes = split_df[~split_df.gene.str.contains('=')] # Drop any residual FStitch regions to just get back a list of genes
     
-    gene_accession_split = unique_genes['gene'].str.rsplit('_', 1, expand=True).rename(lambda x: f'col{x + 1}', axis=1) # Split gene/accession number
-    
-    final_gene_annotations = unique_genes.join(gene_accession_split).drop(columns=['gene']).rename(columns={'col1': 'accession', 'col2': 'gene'}) # Add gene/accession number back in as separate columns, drop combined accesssion_gene column
-    final_gene_annotations['strand'] = final_gene_annotations['strand'].str.split(',').str[0] # Remove list of strands from all merged regions and drop to single identifier
-    final_gene_annotations = final_gene_annotations[['chr', 'start', 'end', 'gene', 'accession', 'strand']] # Reorder columns to make a pseudo BED6
-    final_gene_annotations.to_csv('%s/%s_expanded_gene_annotations.bed' % (outdir, rootname), header=None, sep='\t', index=False)
+    row = unique_genes.loc[:1]
+
+    if (row['gene'].str.contains('_').sum() <= 1) :
+        print('score column')
+        unique_genes['score'] = 0
+        final_gene_annotations = unique_genes[['chr', 'start', 'end', 'gene', 'score', 'strand']]        
+    elif (row['gene'].str.contains('_').sum() > 1) :
+        print('split')
+        gene_accession_split = unique_genes['gene'].str.rsplit('_', 1, expand=True).rename(lambda x: f'col{x + 1}', axis=1) # Split gene/accession number        
+        final_gene_annotations = unique_genes.join(gene_accession_split).drop(columns=['gene']).rename(columns={'col1': 'accession', 'col2': 'gene'}) # Add gene/accession number back in as separate columns, drop combined accesssion_gene column
+        final_gene_annotations['strand'] = final_gene_annotations['strand'].str.split(',').str[0] # Remove list of strands from all merged regions and drop to single identifier
+        final_gene_annotations = final_gene_annotations[['chr', 'start', 'end', 'gene', 'accession', 'strand']] # Reorder columns to make a pseudo BED6        
+
+        
+    final_gene_annotations.to_csv('%s/%s_expanded_gene_annotations.bed' % (outdir, rootname), header=None, sep='\t', index=False)    
     
     clean = subprocess.Popen(['rm', regions, all_tss, tss],
            stdout=subprocess.PIPE, 

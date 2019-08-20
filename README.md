@@ -273,6 +273,8 @@ Note you can use your parameter out file from FStitch train (i.e. Parameters.hmm
 
 ## FStitch bidir
 
+![Alt text](images/bidir_module.png)
+
 The FStitch `bidir` extension module (beta version) uses the output from `segment` to annotate regions of bidirectional transcripts. The positive and negative strand data generated from `segment` needs to be concatenated and sorted using BEDTools prior to running the `bidir` module which can be achieved as follows:
 
 ```
@@ -285,7 +287,7 @@ The following are the required and optional arguments:
 
 |Flag|Type|Desription|
 |----|----|----------|
-|-b  --bed         | \</path/to/segFile.cat.bed>           |Concatenated pos/neg strand output from segment module.
+|-b  --bed         | \</path/to/segFile.cat.bed>           |FStitch segment output (BED file), concatenated for both postive and negative strands.
 |-g  --genes       | \</path/to/gene_annotations.bed>      |Path to gene annotations (e.g. RefSeq gene annotations, BED format).
 |-o  --output      | \</path/to/bidirs.bed>                |Path and filename for bidir module output (BED format).
 
@@ -322,6 +324,43 @@ where the bolded stats are only present if the used specifies the -s/--split arg
 #### Usage in Tfit
 
 While the annotated bidirectionals can be used for the aforementioned analyses, they can also be used as a rigorous prefilter for modeling bidirectionals using Tfit `model` (https://github.com/Dowell-Lab/Tfit) thereby serving as an alternative to the Tfit `prelim` module. This may be especially useful for long regions of super-enhancers as Tfit can model multiple bidirectionals, or predicted RNA polymerase (RNAP) loading sites, within a single annotated region. Furthermore, Tfit's `model` module will produce additional modeling parameters that will describe RNAP activity at the sites provided including loading, pausing, and elongation.
+
+## FStitch Expand
+
+***REQUIRES BEDTools (https://bedtools.readthedocs.io/en/latest/)***
+
+The FStitch `expand` extension module will generate *transcriptional* annotations for each gene. In other words, using a gene annotation file and FStitch `segment` output, the `expand` module will determine which genes are "active" by takings counts over the gene annotated transcription start sites (TSSs) and merging gene annotations and transcriptionally "ON"/active contigs. If the 3' end runs into another transcriptionally active gene, the run-on will be truncated before the next TSS by subtracting the window calculated by the -r/--radius argument from the segment data. As such, this module is also useful for filtering gene annotation lists into "active" and "inactive", a useful application for differential trancription analysis. See example below.
+
+![Alt text](images/expand_python_example.png)
+
+The positive and negative strand data generated from `segment` needs to be concatenated and sorted using BEDTools prior to running the `bidir` module which can be achieved as follows:
+
+```
+$ cat segFile.pos.bed segFile.neg.bed | sortBed > segFile.cat.bed
+```
+
+#### Gene annotation file format and output file format
+
+By default, a RefSeq BED12 gene annotation file downloaded from the UCSC table browser will only contain the accession number in the 4th column. However, if you download and concaenate standard gene names (name2 in custom table selection) with the 4th column accession number (e.g. NM_00000000_MYGENE), these will automatically be split and the output file will be in a pseudo BED6 format, but the 5th column (normally score) will contain the gene name (name2). If the default BED12 is used, a filler value of 0 will be used in the 5th column.
+
+The following are the required and optional arguments:
+
+**Required Arguments**
+
+|Flag|Type|Desription|
+|----|----|----------|
+|-b  --bed         | \</path/to/segFile.cat.bed>        |FStitch segment output (BED file), concatenated for both postive and negative strands.
+|-c  --cram        | \</path/to/sorted.cram>            |Mapped CRAM/BAM file. Both file types supported, although CRAM is recommended. Will need to export path to reference genome if using CRAM (see BEDTools reference).
+|-g  --genes       | \</path/to/gene_annotations.bed>   |Gene reference file in BED6(+) format. Only the first 6 columns will be used which must be in standard chr, start, end, name, score, strand format.
+|-o  --output      | \</path/to/outdir>                 |Path to desired output directory. Temporary files will also be saved here (.tmp).
+
+**Optional Arguments**
+
+|Flag|Type|Desription|
+|-------|----|----------|
+|-s    --save        | BOOL           |Save list of active genes and original annotated regions (prior to merging/expanding using FStitch). <br>Default = False</br>
+|-r    --radius      | \<Integer>     |Radius around the transcription start site (TSS) for which counts will be generated to determine activity. Note that higher values will take longer and potentially reduce contig length (see description of module for details). <br> Default = 1500. (**RECOMMENDED**)</br>
+|-m   --mincount    | \<Integer>      |Minimum number of counts on the opposite strand required to be considered active. <br>Default=10.</br>
 
 ## Cite
 If you find the Fast Read Stitcher program useful for your research please cite:
