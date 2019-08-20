@@ -327,7 +327,7 @@ where the bolded stats are only present if the used specifies the -s/--split arg
 
 While the annotated bidirectionals can be used for the aforementioned analyses, they can also be used as a rigorous prefilter for modeling bidirectionals using Tfit `model` (https://github.com/Dowell-Lab/Tfit) thereby serving as an alternative to the Tfit `prelim` module. This may be especially useful for long regions of super-enhancers as Tfit can model multiple bidirectionals, or predicted RNA polymerase (RNAP) loading sites, within a single annotated region. Furthermore, Tfit's `model` module will produce additional modeling parameters that will describe RNAP activity at the sites provided including loading, pausing, and elongation.
 
-## FStitch Expand
+## FStitch expand
 
 ***REQUIRES BEDTools (https://bedtools.readthedocs.io/en/latest/)***
 
@@ -343,7 +343,7 @@ $ cat segFile.pos.bed segFile.neg.bed | sortBed > segFile.cat.bed
 
 #### Gene annotation file format and output file format
 
-By default, a RefSeq BED12 gene annotation file downloaded from the UCSC table browser will only contain the accession number in the 4th column. However, if you download and concaenate standard gene names (name2 in custom table selection) with the 4th column accession number (e.g. NM_00000000_MYGENE), these will automatically be split and the output file will be in a pseudo BED6 format, but the 5th column (normally score) will contain the gene name (name2). If the default BED12 is used, a filler value of 0 will be used in the 5th column.
+By default, a RefSeq BED12 gene annotation file downloaded from the UCSC table browser will only contain the accession number in the 4th column. However, if you download and concaenate standard gene names (name2 in custom table selection) with the 4th column accession number (e.g. NM_00000000_MYGENE), these will automatically be split and the output file will be in a pseudo BED6 format, but the 4th column will contain the gene name (name2) and the accession (normally column 4) will be moved to the score column (normally column 5). If the default BED12 is used, a filler value of 0 will be used in the 5th column.
 
 The following are the required and optional arguments:
 
