@@ -180,12 +180,10 @@ def main():
     row = unique_genes.loc[:1]
 
     if (row['gene'].str.contains('_').sum() <= 1) :
-        print('score column')
         unique_genes['score'] = 0
         final_gene_annotations = unique_genes[['chr', 'start', 'end', 'gene', 'score', 'strand']]        
     elif (row['gene'].str.contains('_').sum() > 1) :
-        print('split')
-        gene_accession_split = unique_genes['gene'].str.rsplit('_', 1, expand=True).rename(lambda x: f'col{x + 1}', axis=1) # Split gene/accession number        
+            gene_accession_split = unique_genes['gene'].str.replace(r'([^_]+_[^_]+)_', r'\1|').str.split('|', expand=True).rename(lambda x: f'col{x + 1}', axis=1) # Split gene/accession number        
         final_gene_annotations = unique_genes.join(gene_accession_split).drop(columns=['gene']).rename(columns={'col1': 'accession', 'col2': 'gene'}) # Add gene/accession number back in as separate columns, drop combined accesssion_gene column
         final_gene_annotations['strand'] = final_gene_annotations['strand'].str.split(',').str[0] # Remove list of strands from all merged regions and drop to single identifier
         final_gene_annotations = final_gene_annotations[['chr', 'start', 'end', 'gene', 'accession', 'strand']] # Reorder columns to make a pseudo BED6        
