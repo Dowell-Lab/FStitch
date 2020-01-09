@@ -48,17 +48,18 @@ def main():
     
 ##### Set any global variables
     RADIUS = args.radius
-    outdir = args.output
     COUNT = args.count
-    rootname = os.path.splitext(os.path.basename(args.cram))[0]
+    rootname_path = os.path.splitext(os.path.basename(args.cram))[0]
+    rootname = rootname_path.split('.', 1)[0]
     cram = args.cram
     fstitch = args.fstitch_seg_file
+    outdir = args.output    
     
     pd.options.mode.chained_assignment = None    
     
     try:
         if os.stat(args.fstitch_seg_file).st_size > 0:
-            print("Beginning Processing.....")
+            print("Beginning Processing....." + str(datetime.datetime.now()))  
         else:
             raise ValueError("FStitch BED file is empty. Check your FStitch training file for errors occuring in FStitch segment module.")
     except OSError:
@@ -125,6 +126,8 @@ def main():
     transcribed_gene_annotations = genes[genes['gene'].isin(transcribed_genes_list)]
     if (args.save_raw_annotations):
         transcribed_gene_annotations.to_csv('%s/%s_transcribed_gene_annotations.bed' % (outdir, rootname), header=None, sep='\t', index=False)
+        
+    transcribed_gene_annotations['original_length'] = transcribed_gene_annotations['end'] - transcribed_gene_annotations['start'] # Get original length for a stats file output & filter
     
 ##########################################################################################################     
 
@@ -136,7 +139,7 @@ def main():
                stderr=subprocess.STDOUT)
     
     subout,suberr = subtract.communicate()
-    print("subtractBed stderr output:")
+    print("subtractBed stderr output:") # This is annoying to separate these but kept running into a subprocess error if I put them together if the suberr was empty
     print(suberr)
     
     subdata = StringIO(str(subout,'utf-8'))
@@ -175,21 +178,25 @@ def main():
     split_df = DataFrame(merge_df.name.str.split(',').tolist(), index=[merge_df.chr, merge_df.start, merge_df.end, merge_df.strand]).stack() # Create one unique entry per gene/region
     split_df = split_df.reset_index()[[0, 'chr', 'start', 'end', 'strand']] # name variable is currently labeled 0
     split_df.columns = ['gene', 'chr', 'start', 'end', 'strand'] # renaming "name" to gene
-    unique_genes = split_df[~split_df.gene.str.contains('=')] # Drop any residual FStitch regions to just get back a list of genes
-    
-    row = unique_genes.loc[:1]
+    unique_genes = split_df[~split_df.gene.str.contains('=')].sort_values(by=['chr', 'start']) # Drop any residual FStitch regions to just get back a list of genes
 
-    if (row['gene'].str.contains('_').sum() <= 1) :
+    # This next part is to parse the annotations accordingly as to whether the user gave accession_name2 or just accession
+    row = unique_genes.iloc[1, unique_genes.columns.get_loc('gene')]
+
+    if (row.count('_') <= 1) :
         unique_genes['score'] = 0
         final_gene_annotations = unique_genes[['chr', 'start', 'end', 'gene', 'score', 'strand']]        
-    elif (row['gene'].str.contains('_').sum() > 1) :
-            gene_accession_split = unique_genes['gene'].str.replace(r'([^_]+_[^_]+)_', r'\1|').str.split('|', expand=True).rename(lambda x: f'col{x + 1}', axis=1) # Split gene/accession number        
+    elif (row.count('_') > 1) :
+        gene_accession_split = unique_genes['gene'].str.replace(r'([^_]+_[^_]+)_', r'\1|').str.split('|', expand=True).rename(lambda x: f'col{x + 1}', axis=1) # Split gene/accession number       
         final_gene_annotations = unique_genes.join(gene_accession_split).drop(columns=['gene']).rename(columns={'col1': 'accession', 'col2': 'gene'}) # Add gene/accession number back in as separate columns, drop combined accesssion_gene column
         final_gene_annotations['strand'] = final_gene_annotations['strand'].str.split(',').str[0] # Remove list of strands from all merged regions and drop to single identifier
-        final_gene_annotations = final_gene_annotations[['chr', 'start', 'end', 'gene', 'accession', 'strand']] # Reorder columns to make a pseudo BED6        
-
+        final_gene_annotations = final_gene_annotations[['chr', 'start', 'end', 'gene', 'accession', 'strand']] # Reorder columns to make a pseudo BED6
         
-    final_gene_annotations.to_csv('%s/%s_expanded_gene_annotations.bed' % (outdir, rootname), header=None, sep='\t', index=False)    
+    final_gene_annotations.to_csv('%s/%s_expanded_gene_annotations.bed' % (outdir, rootname), header=None, sep='\t', index=False)            
+        
+    gene_lengths_stats = transcribed_gene_annotations[transcribed_gene_annotations['gene'].isin(unique_genes['gene'].tolist())].sort_values(by=['chr', 'start'])
+    gene_lengths_stats['end_length'] = (unique_genes['end'] - unique_genes['start']).tolist()
+    gene_lengths_stats.to_csv('%s/%s_annotated_gene_length_stats.bed' % (outdir, rootname), sep='\t', index=False)     
     
     clean = subprocess.Popen(['rm', regions, all_tss, tss],
            stdout=subprocess.PIPE, 
