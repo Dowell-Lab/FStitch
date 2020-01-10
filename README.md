@@ -347,7 +347,7 @@ By default, a RefSeq BED12 gene annotation file downloaded from the UCSC table b
 
 **UPDATE**
 
-An additional file is now part of the standard output from the module. The original annotation with `original_length` and `end_length` in the 7th and 8th columns will now be saved. This may be helpful in filtering out genes that were merged with metagene regions or for isoform filtering/analysis.
+An additional file is now generated as part of the module output. The original annotation with `original_length` and `end_length` in the 7th and 8th columns will now be saved. This may be helpful in filtering out genes that were merged with metagene regions or for isoform filtering/analysis.
 
 The following are the required and optional arguments:
 
