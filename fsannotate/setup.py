@@ -13,7 +13,7 @@ here = path.abspath(path.dirname(__file__))
 #    long_description = f.read()
 
 setup(name='fstitch-annotate',
-      version='0.3.2',
+      version='0.3.3',
       description='Provides additional annotation tools using FStitch segment data.',
       url='https://github.com/Dowell-Lab/FStitch',
       author='Margaret Gruca',
