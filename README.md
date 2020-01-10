@@ -345,6 +345,10 @@ $ cat segFile.pos.bed segFile.neg.bed | sortBed > segFile.cat.bed
 
 By default, a RefSeq BED12 gene annotation file downloaded from the UCSC table browser will only contain the accession number in the 4th column. However, if you download and concaenate standard gene names (name2 in custom table selection) with the 4th column accession number (e.g. NM_00000000_MYGENE), these will automatically be split and the output file will be in a pseudo BED6 format, but the 4th column will contain the gene name (name2) and the accession (normally column 4) will be moved to the score column (normally column 5). If the default BED12 is used, a filler value of 0 will be used in the 5th column.
 
+**UPDATE**
+
+An additional file is now part of the standard output from the module. The original annotation with `original_length` and `end_length` in the 7th and 8th columns will now be saved. This may be helpful in filtering out genes that were merged with metagene regions or for isoform filtering/analysis.
+
 The following are the required and optional arguments:
 
 **Required Arguments**
